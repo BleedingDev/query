@@ -78,6 +78,17 @@ async function run(command, args, cwd = repo) {
 }
 try {
   const pnpm = process.env.PNPM_BIN ?? 'pnpm'
+  const source = process.env.GITHUB_SHA
+  assert(
+    source && /^[a-f0-9]{40}$/.test(source),
+    'GITHUB_SHA must identify qualified source',
+  )
+  const repository = 'BleedingDev/query'
+  assert.equal(process.env.GITHUB_REPOSITORY, repository)
+  const releaseTag = `ultramodern-solid-query-${source.slice(0, 12)}`
+  const archiveName = (name) => `tanstack-${name}-${source.slice(0, 12)}.tgz`
+  const releaseUrl = (name) =>
+    `https://github.com/${repository}/releases/download/${releaseTag}/${archiveName(name)}`
   // Source installs use the committed strict workspace configuration so their
   // frozen lockfile is identical in normal PR CI and this qualification.
   const sourceConfig = [
@@ -192,14 +203,92 @@ try {
       'build',
     ])
   }
+  const packageNames = ['solid-query', ...providerPackages]
   const packed = new Map()
-  for (const name of ['solid-query', ...providerPackages]) {
-    const destination = path.join(work, 'packs', name)
-    await mkdir(destination, { recursive: true })
+  for (const name of packageNames) {
+    const rawDestination = path.join(work, 'raw-packs', name)
+    await mkdir(rawDestination, { recursive: true })
     await run(pnpm, [
       ...sourceConfig,
       '--dir',
       `packages/${name}`,
+      'pack',
+      '--pack-destination',
+      rawDestination,
+    ])
+    const rawArchives = (await readdir(rawDestination)).filter((name) =>
+      name.endsWith('.tgz'),
+    )
+    assert.equal(rawArchives.length, 1, `Expected one source ${name} archive`)
+    // Stage only the normal packed files. Rewrite delivery coordinates in this
+    // disposable manifest, leaving authored workspace manifests and builds alone.
+    const stage = path.join(work, 'staged-packs', name)
+    await mkdir(stage, { recursive: true })
+    await run('tar', [
+      '-xzf',
+      path.join(rawDestination, rawArchives[0]),
+      '-C',
+      stage,
+    ])
+    const packageRoot = path.join(stage, 'package')
+    const manifestPath = path.join(packageRoot, 'package.json')
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
+    assert.equal(manifest.name, `@tanstack/${name}`)
+    const sharedProvider = {
+      'solid-query-devtools': 'query-devtools',
+      'solid-query-persist-client': 'query-persist-client-core',
+    }[name]
+    if (sharedProvider) {
+      manifest.dependencies = {
+        ...manifest.dependencies,
+        '@tanstack/solid-query': releaseUrl('solid-query'),
+        [`@tanstack/${sharedProvider}`]: releaseUrl(sharedProvider),
+      }
+      // URL coordinates are dependencies, not semver peer ranges. Core and the
+      // native Solid runtime remain required caller-owned peers.
+      delete manifest.peerDependencies['@tanstack/solid-query']
+    }
+    const callerPeers = name.startsWith('solid-query')
+      ? ['@tanstack/query-core', 'solid-js', '@solidjs/web']
+      : ['@tanstack/query-core']
+    for (const peer of callerPeers) {
+      assert.equal(
+        typeof manifest.peerDependencies?.[peer],
+        'string',
+        `${name} requires caller peer ${peer}`,
+      )
+      assert.notEqual(
+        manifest.peerDependenciesMeta?.[peer]?.optional,
+        true,
+        `${name} cannot make ${peer} optional`,
+      )
+      assert(
+        !manifest.dependencies?.[peer] &&
+          !manifest.optionalDependencies?.[peer],
+        `${name} cannot privately provision ${peer}`,
+      )
+    }
+    for (const field of [
+      'dependencies',
+      'optionalDependencies',
+      'peerDependencies',
+    ]) {
+      for (const [dependency, specifier] of Object.entries(
+        manifest[field] ?? {},
+      )) {
+        assert(
+          !specifier.startsWith('workspace:'),
+          `${name} retains ${dependency} workspace protocol`,
+        )
+      }
+    }
+    await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n')
+    const destination = path.join(work, 'packs', name)
+    await mkdir(destination, { recursive: true })
+    await run(pnpm, [
+      '--dir',
+      packageRoot,
+      '--ignore-workspace',
       'pack',
       '--pack-destination',
       destination,
@@ -207,10 +296,11 @@ try {
     const archives = (await readdir(destination)).filter((name) =>
       name.endsWith('.tgz'),
     )
-    assert.equal(archives.length, 1, `Expected one packed ${name} archive`)
-    packed.set(`@tanstack/${name}`, path.join(destination, archives[0]))
+    assert.equal(archives.length, 1, `Expected one delivery ${name} archive`)
+    const archive = path.join(work, 'packs', archiveName(name))
+    await copyFile(path.join(destination, archives[0]), archive)
+    packed.set(`@tanstack/${name}`, archive)
   }
-  const archive = packed.get('@tanstack/solid-query')
   const consumer = path.join(work, 'consumer')
   await mkdir(consumer)
   await writeFile(
@@ -240,13 +330,13 @@ try {
   )
   await writeFile(
     path.join(consumer, 'pnpm-workspace.yaml'),
-    // pnpm 11 reads overrides from workspace YAML, not package.json. Keep the
-    // workspace-rewritten provider ranges on the exact tarballs under test.
+    // Before publication, map all same-release URLs to the exact accepted local
+    // bytes. Postpublication acceptance must install the URLs without overrides.
     'packages: []\nminimumReleaseAge: 1440\nminimumReleaseAgeExclude: []\nstrictPeerDependencies: true\nautoInstallPeers: false\npackageImportMethod: clone-or-copy\nallowBuilds:\n  esbuild: true\noverrides:\n' +
-      ['@tanstack/query-devtools', '@tanstack/query-persist-client-core']
+      [...packed]
         .map(
-          (name) =>
-            `  ${JSON.stringify(name)}: ${JSON.stringify(`file:${packed.get(name)}`)}\n`,
+          ([name, archive]) =>
+            `  ${JSON.stringify(name)}: ${JSON.stringify(`file:${archive}`)}\n`,
         )
         .join(''),
   )
@@ -380,7 +470,7 @@ for (const name of ['@tanstack/query-devtools', '@tanstack/query-persist-client-
   const providerRequire = createRequire(require.resolve(name))
   assert.equal(realpathSync(providerRequire.resolve('@tanstack/query-core')), corePath, name + ' must use the caller Core')
 }
-for (const [wrapper, provider] of [['@tanstack/solid-query-devtools', '@tanstack/query-devtools'], ['@tanstack/solid-query-persist-client', '@tanstack/query-persist-client-core']]) {
+for (const [wrapper, provider] of [['@tanstack/solid-query-devtools', '@tanstack/query-devtools'], ['@tanstack/solid-query-persist-client', '@tanstack/query-persist-client-core'], ['@tanstack/solid-query-devtools', '@tanstack/solid-query'], ['@tanstack/solid-query-persist-client', '@tanstack/solid-query']]) {
   const wrapperRequire = createRequire(require.resolve(wrapper))
   assert.equal(realpathSync(wrapperRequire.resolve(provider)), realpathSync(require.resolve(provider)), wrapper + ' must use the packed provider')
 }
@@ -521,11 +611,8 @@ console.log('Packed Query production/development native Provider, hooks and shar
   )
   await run(process.execPath, ['identity.mjs'], consumer)
   await run(process.execPath, ['browser.mjs'], consumer)
-  const sha512 = createHash('sha512')
-    .update(await readFile(archive))
-    .digest('base64')
-  const providerProofs = await Promise.all(
-    providerPackages.map(async (name) => ({
+  const packages = await Promise.all(
+    packageNames.map(async (name) => ({
       package: `@tanstack/${name}`,
       packageVersion: JSON.parse(
         await readFile(
@@ -533,40 +620,31 @@ console.log('Packed Query production/development native Provider, hooks and shar
           'utf8',
         ),
       ).version,
+      archive: archiveName(name),
       integrity: `sha512-${createHash('sha512')
         .update(await readFile(packed.get(`@tanstack/${name}`)))
         .digest('base64')}`,
     })),
   )
-  const source = process.env.GITHUB_SHA
-  assert(
-    source && /^[a-f0-9]{40}$/.test(source),
-    'GITHUB_SHA must identify qualified source',
-  )
   await mkdir(output)
-  const filename = `tanstack-solid-query-${source.slice(0, 12)}.tgz`
-  await copyFile(archive, path.join(output, filename))
+  for (const receipt of packages) {
+    await copyFile(
+      packed.get(receipt.package),
+      path.join(output, receipt.archive),
+    )
+  }
   await writeFile(
     path.join(output, 'acceptance.json'),
     JSON.stringify(
       {
-        schema: 1,
-        repository: process.env.GITHUB_REPOSITORY,
+        schema: 2,
+        repository,
         source,
         runId: process.env.GITHUB_RUN_ID,
         runAttempt: process.env.GITHUB_RUN_ATTEMPT,
-        package: '@tanstack/solid-query',
-        packageVersion: JSON.parse(
-          await readFile(
-            path.join(repo, 'packages/solid-query/package.json'),
-            'utf8',
-          ),
-        ).version,
-        archive: filename,
-        integrity: `sha512-${sha512}`,
         solid: '2.0.0-rc.15',
         queryCore: '5.102.0',
-        providerProofs,
+        packages,
         checks: [
           'source unit and type tests',
           'lint',
@@ -578,7 +656,7 @@ console.log('Packed Query production/development native Provider, hooks and shar
           'public Provider and SSR types',
           'shared ESM/CJS Core identity, query, infiniteQuery and dehydration',
           'production/development native Provider, hooks and cache',
-          'five packed archives with strict explicit peers and caller-owned provider Core',
+          'five delivery archives with prepublication local-byte URL mapping and strict caller-owned peers',
           'provider public DTS share caller QueryClient and persistence saves/restores its cache',
         ],
       },

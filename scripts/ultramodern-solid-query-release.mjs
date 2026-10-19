@@ -19,25 +19,100 @@ export function verifyRun(run, source) {
   assert.equal(run.status, 'completed')
   assert.equal(run.conclusion, 'success')
 }
-export function verifyReceipt(receipt, run, bytes, packageVersion) {
-  assert.equal(receipt.schema, 1)
+export const packageNames = [
+  '@tanstack/solid-query',
+  '@tanstack/query-devtools',
+  '@tanstack/query-persist-client-core',
+  '@tanstack/solid-query-devtools',
+  '@tanstack/solid-query-persist-client',
+]
+export function archiveName(name, source) {
+  return `tanstack-${name.slice('@tanstack/'.length)}-${source.slice(0, 12)}.tgz`
+}
+export function archiveUrl(name, source) {
+  return `https://github.com/${repository}/releases/download/ultramodern-solid-query-${source.slice(0, 12)}/${archiveName(name, source)}`
+}
+export function verifyReceipt(receipt, run, archives, sourceManifests) {
+  assert.equal(receipt.schema, 2)
   assert.equal(receipt.repository, repository)
   assert.equal(receipt.source, run.head_sha)
   assert.equal(receipt.runId, String(run.id))
   assert.equal(receipt.runAttempt, String(run.run_attempt))
-  assert.equal(receipt.package, '@tanstack/solid-query')
-  assert.equal(typeof packageVersion, 'string')
-  assert.equal(receipt.packageVersion, packageVersion)
   assert.equal(receipt.solid, '2.0.0-rc.15')
   assert.equal(receipt.queryCore, '5.102.0')
-  assert.equal(
-    receipt.archive,
-    `tanstack-solid-query-${run.head_sha.slice(0, 12)}.tgz`,
+  assert.deepEqual(
+    receipt.packages.map((entry) => entry.package),
+    packageNames,
   )
-  assert.equal(
-    receipt.integrity,
-    `sha512-${createHash('sha512').update(bytes).digest('base64')}`,
-  )
+  assert.equal(archives.size, packageNames.length)
+  for (const entry of receipt.packages) {
+    const source = sourceManifests.get(entry.package)
+    assert(source, `Missing merged manifest for ${entry.package}`)
+    assert.equal(entry.packageVersion, source.version)
+    assert.equal(entry.archive, archiveName(entry.package, run.head_sha))
+    const archive = archives.get(entry.archive)
+    assert(archive, `Missing accepted archive ${entry.archive}`)
+    assert.equal(
+      entry.integrity,
+      `sha512-${createHash('sha512').update(archive.bytes).digest('base64')}`,
+    )
+    const manifest = archive.manifest
+    assert.equal(manifest.name, entry.package)
+    assert.equal(manifest.version, source.version)
+    const dependencies = { ...source.dependencies }
+    const peers = { ...source.peerDependencies }
+    const optionalDependencies = { ...source.optionalDependencies }
+    for (const name of packageNames) {
+      if (name in dependencies)
+        dependencies[name] = archiveUrl(name, run.head_sha)
+      if (name in optionalDependencies)
+        optionalDependencies[name] = archiveUrl(name, run.head_sha)
+      // The accepted wrappers install their matching Solid binding directly;
+      // a version-only peer would resolve the unchanged registry RC instead.
+      if (name in peers) {
+        dependencies[name] = archiveUrl(name, run.head_sha)
+        delete peers[name]
+      }
+    }
+    assert.deepEqual(
+      manifest.dependencies ?? {},
+      dependencies,
+      `${entry.package} must install only its accepted dependency graph`,
+    )
+    assert.deepEqual(manifest.optionalDependencies ?? {}, optionalDependencies)
+    assert.deepEqual(
+      manifest.peerDependencies ?? {},
+      peers,
+      `${entry.package} must retain its caller-owned peers`,
+    )
+    assert.equal(
+      typeof manifest.peerDependencies?.['@tanstack/query-core'],
+      'string',
+    )
+    assert(
+      !manifest.dependencies?.['@tanstack/query-core'] &&
+        !manifest.optionalDependencies?.['@tanstack/query-core'],
+      'Query Core must remain caller-owned',
+    )
+    assert.notEqual(
+      manifest.peerDependenciesMeta?.['@tanstack/query-core']?.optional,
+      true,
+    )
+    for (const field of [
+      'dependencies',
+      'optionalDependencies',
+      'peerDependencies',
+    ]) {
+      for (const [name, specifier] of Object.entries(manifest[field] ?? {})) {
+        assert(
+          !specifier.startsWith('workspace:'),
+          `Unresolved workspace edge ${entry.package} -> ${name}`,
+        )
+        if (packageNames.includes(name))
+          assert.equal(specifier, archiveUrl(name, run.head_sha))
+      }
+    }
+  }
 }
 async function main() {
   const source = process.env.GITHUB_SHA
@@ -141,22 +216,47 @@ async function main() {
     const receipt = JSON.parse(
       await readFile(path.join(work, 'acceptance.json'), 'utf8'),
     )
-    assert.equal(receipt.archive, path.basename(receipt.archive))
     const files = await readdir(work)
-    assert.deepEqual(files.sort(), ['acceptance.json', receipt.archive].sort())
-    const archive = await readFile(path.join(work, receipt.archive))
-    const packageVersion = JSON.parse(
-      await readFile(
-        new URL('../packages/solid-query/package.json', import.meta.url),
-        'utf8',
-      ),
-    ).version
-    verifyReceipt(receipt, run, archive, packageVersion)
-    const evidence = `Source: https://github.com/${repository}/commit/${source}\nAccepted CI: https://github.com/${repository}/actions/runs/${runId}\nActions artifact: ${matching[0].id}\nIntegrity: ${receipt.integrity}\n\nSolid 2.0.0-rc.15 with one host Query Core5.102.0. Exact accepted archive, without rebuilding.\n`
+    const archiveFiles = packageNames.map((name) => archiveName(name, source))
+    assert.deepEqual(files.sort(), ['acceptance.json', ...archiveFiles].sort())
+    const archives = new Map()
+    const sourceManifests = new Map()
+    for (const name of packageNames) {
+      const filename = archiveName(name, source)
+      const absolute = path.join(work, filename)
+      archives.set(filename, {
+        bytes: await readFile(absolute),
+        manifest: JSON.parse(
+          execFileSync('tar', ['-xOf', absolute, 'package/package.json'], {
+            encoding: 'utf8',
+          }),
+        ),
+      })
+      sourceManifests.set(
+        name,
+        JSON.parse(
+          await readFile(
+            new URL(
+              `../packages/${name.slice('@tanstack/'.length)}/package.json`,
+              import.meta.url,
+            ),
+            'utf8',
+          ),
+        ),
+      )
+    }
+    verifyReceipt(receipt, run, archives, sourceManifests)
+    const integrities = receipt.packages
+      .map(
+        (entry) =>
+          `${entry.package}@${entry.packageVersion}: ${entry.integrity}`,
+      )
+      .join('\n')
+    const evidence = `Source: https://github.com/${repository}/commit/${source}\nAccepted CI: https://github.com/${repository}/actions/runs/${runId}\nActions artifact: ${matching[0].id}\n\n${integrities}\n\nSolid 2.0.0-rc.15 with one caller-owned Query Core5.102.0. All five exact accepted archives, without rebuilding; wrapper dependencies point to these same immutable release assets.\n`
     const release = await request('releases', 'POST', {
       tag_name: tag,
       target_commitish: source,
-      name: `Solid Query source ${source.slice(0, 12)}`,
+      name: `Solid Query and providers source ${source.slice(0, 12)}`,
       body: evidence,
       draft: true,
       prerelease: true,
@@ -194,7 +294,17 @@ async function main() {
       true,
       'Repository immutable releases must be enabled before dispatch',
     )
-    assert.equal(published.assets.length, 2)
+    assert.deepEqual(
+      published.assets.map((asset) => asset.name).sort(),
+      files.sort(),
+    )
+    for (const asset of published.assets) {
+      const bytes = await readFile(path.join(work, asset.name))
+      assert.equal(
+        asset.digest,
+        `sha256:${createHash('sha256').update(bytes).digest('hex')}`,
+      )
+    }
     const ref = await request(`git/ref/tags/${tag}`)
     assert.equal(ref.object.sha, source)
     console.log(published.html_url)
