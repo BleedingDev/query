@@ -32,6 +32,30 @@ export function archiveName(name, source) {
 export function archiveUrl(name, source) {
   return `https://github.com/${repository}/releases/download/ultramodern-solid-query-${source.slice(0, 12)}/${archiveName(name, source)}`
 }
+// Every cohort archive is supplied directly by the caller. Internal edges are
+// required exact-version peers so strict installs never follow nested URL deps.
+export function projectManifest(manifest, sourceManifests) {
+  const projected = structuredClone(manifest)
+  for (const name of packageNames) {
+    if (
+      !['dependencies', 'optionalDependencies', 'peerDependencies'].some(
+        (field) => Object.hasOwn(projected[field] ?? {}, name),
+      )
+    )
+      continue
+    const provider = sourceManifests.get(name)
+    assert(
+      provider?.name === name && typeof provider.version === 'string',
+      `Missing accepted source version for ${name}`,
+    )
+    delete projected.dependencies?.[name]
+    delete projected.optionalDependencies?.[name]
+    projected.peerDependencies ??= {}
+    projected.peerDependencies[name] = provider.version
+    delete projected.peerDependenciesMeta?.[name]
+  }
+  return projected
+}
 export function verifyReceipt(receipt, run, archives, sourceManifests) {
   assert.equal(receipt.schema, 2)
   assert.equal(receipt.repository, repository)
@@ -59,32 +83,19 @@ export function verifyReceipt(receipt, run, archives, sourceManifests) {
     const manifest = archive.manifest
     assert.equal(manifest.name, entry.package)
     assert.equal(manifest.version, source.version)
-    const dependencies = { ...source.dependencies }
-    const peers = { ...source.peerDependencies }
-    const optionalDependencies = { ...source.optionalDependencies }
-    for (const name of packageNames) {
-      if (name in dependencies)
-        dependencies[name] = archiveUrl(name, run.head_sha)
-      if (name in optionalDependencies)
-        optionalDependencies[name] = archiveUrl(name, run.head_sha)
-      // The accepted wrappers install their matching Solid binding directly;
-      // a version-only peer would resolve the unchanged registry RC instead.
-      if (name in peers) {
-        dependencies[name] = archiveUrl(name, run.head_sha)
-        delete peers[name]
-      }
+    const expected = projectManifest(source, sourceManifests)
+    for (const field of [
+      'dependencies',
+      'optionalDependencies',
+      'peerDependencies',
+      'peerDependenciesMeta',
+    ]) {
+      assert.deepEqual(
+        manifest[field] ?? {},
+        expected[field] ?? {},
+        `${entry.package} must retain the accepted caller-owned ${field}`,
+      )
     }
-    assert.deepEqual(
-      manifest.dependencies ?? {},
-      dependencies,
-      `${entry.package} must install only its accepted dependency graph`,
-    )
-    assert.deepEqual(manifest.optionalDependencies ?? {}, optionalDependencies)
-    assert.deepEqual(
-      manifest.peerDependencies ?? {},
-      peers,
-      `${entry.package} must retain its caller-owned peers`,
-    )
     assert.equal(
       typeof manifest.peerDependencies?.['@tanstack/query-core'],
       'string',
@@ -108,8 +119,15 @@ export function verifyReceipt(receipt, run, archives, sourceManifests) {
           !specifier.startsWith('workspace:'),
           `Unresolved workspace edge ${entry.package} -> ${name}`,
         )
-        if (packageNames.includes(name))
-          assert.equal(specifier, archiveUrl(name, run.head_sha))
+        if (packageNames.includes(name)) {
+          assert.equal(
+            field,
+            'peerDependencies',
+            'Cohort edges must be caller-owned peers',
+          )
+          assert.equal(specifier, sourceManifests.get(name).version)
+          assert.notEqual(manifest.peerDependenciesMeta?.[name]?.optional, true)
+        }
       }
     }
   }
@@ -255,7 +273,7 @@ async function main() {
           `${entry.package}@${entry.packageVersion}: ${entry.integrity}`,
       )
       .join('\n')
-    const evidence = `Source: https://github.com/${repository}/commit/${source}\nAccepted CI: https://github.com/${repository}/actions/runs/${runId}\nActions artifact: ${matching[0].id}\n\n${integrities}\n\nSolid 2.0.0-rc.15 with one caller-owned Query Core5.102.0. All five exact accepted archives, without rebuilding; wrapper dependencies point to these same immutable release assets.\n`
+    const evidence = `Source: https://github.com/${repository}/commit/${source}\nAccepted CI: https://github.com/${repository}/actions/runs/${runId}\nActions artifact: ${matching[0].id}\n\n${integrities}\n\nSolid 2.0.0-rc.15 with one caller-owned Query Core5.102.0. All five exact accepted archives, without rebuilding. Callers supply all five authenticated archives directly; wrappers require exact cohort version peers.\n`
     await verifyCurrentSource()
     const release = await request('releases', 'POST', {
       tag_name: tag,
