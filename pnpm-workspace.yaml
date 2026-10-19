@@ -10,15 +10,8 @@ trustPolicyExclude:
   - 'semver@6.3.1' # Socket score 100/100; popular and healthy.
   - 'ua-parser-js@1.0.41' # Socket score 100/100; popular and healthy.
   - 'undici-types@6.21.0' # Socket score 100/100; popular and healthy.
-minimumReleaseAgeExclude:
-  - 'solid-js'
-  - '@solidjs/*'
-  - 'vite-plugin-solid'
-  - 'babel-preset-solid'
-  - 'babel-plugin-jsx-dom-expressions'
-  - '@dom-expressions/*'
-  - 'seroval'
-  - 'seroval-plugins'
+minimumReleaseAgeExclude: []
+packageImportMethod: clone-or-copy
 
 packages:
   - 'packages/*'
@@ -50,7 +43,6 @@ overrides:
   '@typescript-eslint/utils': '8.58.1'
   '@typescript-eslint/visitor-keys': '8.58.1'
   typescript-eslint: '8.58.1'
-  vite: '^6.4.1'
   # The Solid 2.0 packages, their examples and the vite integration run on
   # vite 8: @solidjs/vite-plugin 3.0.0-next.32+ (the versions carrying the
   # Solid 2.0 compiler) require vite ^8. vitest takes vite as a peer, so the

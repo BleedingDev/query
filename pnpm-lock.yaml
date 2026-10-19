@@ -32,8 +32,6 @@ overrides:
   solid-vite>vite: ^8.3.0
   esbuild: ^0.27.2
 
-pnpmfileChecksum: sha256-1Muzvh6IvHzp6TlAr/jlS7sbRHZvqE12RTP0MoQ3uBE=
-
 importers:
 
   .:
@@ -3021,40 +3019,43 @@ importers:
         specifier: ^7.18.6
         version: 7.28.5(@babel/core@7.29.0)
       '@solidjs/babel-plugin':
-        specifier: ^2.0.0-rc.13
-        version: 2.0.0-rc.13(@babel/core@7.29.0)
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15(@babel/core@7.29.0)
+      '@solidjs/compiler':
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15
       '@solidjs/signals':
-        specifier: ^2.0.0-rc.13
-        version: 2.0.0-rc.13
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15
       '@solidjs/testing-library':
-        specifier: ^0.8.10
-        version: 0.8.10(@solidjs/router@0.15.4(solid-js@2.0.0-rc.13))(solid-js@2.0.0-rc.13)
+        specifier: 1.0.0-beta.3
+        version: 1.0.0-beta.3(@solidjs/web@2.0.0-rc.15(solid-js@2.0.0-rc.15))(solid-js@2.0.0-rc.15)
       '@solidjs/vite-plugin':
-        specifier: ^3.0.0-next.46
-        version: 3.0.0-next.46(@solidjs/web@2.0.0-rc.13(solid-js@2.0.0-rc.13))(@testing-library/jest-dom@6.9.1)(solid-js@2.0.0-rc.13)(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+        specifier: 3.0.0-next.50
+        version: 3.0.0-next.50(@solidjs/web@2.0.0-rc.15(solid-js@2.0.0-rc.15))(@testing-library/jest-dom@6.9.1)(solid-js@2.0.0-rc.15)(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
       '@solidjs/web':
-        specifier: ^2.0.0-rc.13
-        version: 2.0.0-rc.13(solid-js@2.0.0-rc.13)
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15(solid-js@2.0.0-rc.15)
       '@tanstack/solid-query':
         specifier: workspace:*
         version: link:../solid-query
       '@vitest/coverage-istanbul':
-        specifier: 4.0.6
-        version: 4.0.6(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))
+        specifier: 4.1.2
+        version: 4.1.2(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))
       npm-run-all2:
         specifier: ^5.0.0
         version: 5.0.2
       solid-js:
-        specifier: ^2.0.0-rc.13
-        version: 2.0.0-rc.13
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15
       tsup-preset-solid:
         specifier: ^2.2.0
-        version: 2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.13)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
+        version: 2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
-        specifier: ^4.0.18
+        specifier: 4.1.2
         version: 4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/solid-query-persist-client:
@@ -3070,17 +3071,23 @@ importers:
         specifier: ^7.18.6
         version: 7.28.5(@babel/core@7.29.0)
       '@solidjs/babel-plugin':
-        specifier: ^2.0.0-rc.13
-        version: 2.0.0-rc.13(@babel/core@7.29.0)
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15(@babel/core@7.29.0)
+      '@solidjs/compiler':
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15
+      '@solidjs/signals':
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15
       '@solidjs/testing-library':
-        specifier: ^0.8.10
-        version: 0.8.10(@solidjs/router@0.15.4(solid-js@2.0.0-rc.13))(solid-js@2.0.0-rc.13)
+        specifier: 1.0.0-beta.3
+        version: 1.0.0-beta.3(@solidjs/web@2.0.0-rc.15(solid-js@2.0.0-rc.15))(solid-js@2.0.0-rc.15)
       '@solidjs/vite-plugin':
-        specifier: ^3.0.0-next.46
-        version: 3.0.0-next.46(@solidjs/web@2.0.0-rc.13(solid-js@2.0.0-rc.13))(@testing-library/jest-dom@6.9.1)(solid-js@2.0.0-rc.13)(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+        specifier: 3.0.0-next.50
+        version: 3.0.0-next.50(@solidjs/web@2.0.0-rc.15(solid-js@2.0.0-rc.15))(@testing-library/jest-dom@6.9.1)(solid-js@2.0.0-rc.15)(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
       '@solidjs/web':
-        specifier: ^2.0.0-rc.13
-        version: 2.0.0-rc.13(solid-js@2.0.0-rc.13)
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15(solid-js@2.0.0-rc.15)
       '@tanstack/query-test-utils':
         specifier: workspace:*
         version: link:../query-test-utils
@@ -3088,22 +3095,22 @@ importers:
         specifier: workspace:*
         version: link:../solid-query
       '@vitest/coverage-istanbul':
-        specifier: 4.0.6
-        version: 4.0.6(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))
+        specifier: 4.1.2
+        version: 4.1.2(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))
       npm-run-all2:
         specifier: ^5.0.0
         version: 5.0.2
       solid-js:
-        specifier: ^2.0.0-rc.13
-        version: 2.0.0-rc.13
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15
       tsup-preset-solid:
         specifier: ^2.2.0
-        version: 2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.13)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
+        version: 2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
-        specifier: ^4.0.18
+        specifier: 4.1.2
         version: 4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/svelte-query:
@@ -6528,7 +6535,7 @@ packages:
     resolution: {integrity: sha512-p0vJpxiVO7KWWazWny3LUZ+saXyZKWv6Ju0bYMWNJRp2YveufRPgSUB1C4MTqGJfz07EehMgfN+AJNwQy+w6Iw==}
     peerDependencies:
       '@babel/core': 7.x
-      vite: ^6.4.1
+      vite: 2.x || 3.x || 4.x || 5.x || 6.x || 7.x || 8.x
 
   '@prefresh/babel-plugin@0.5.3':
     resolution: {integrity: sha512-57LX2SHs4BX2s1IwCjNzTE2OJeEepRCNf1VTEpbNcUyHfMO68eeOWGDIt4ob9aYlW6PEWZ1SuwNikuoIXANDtQ==}
@@ -6545,7 +6552,7 @@ packages:
     resolution: {integrity: sha512-FY1fzXpUjiuosznMV0YM7XAOPZjB5FIdWS0W24+XnlxYkt9hNAwwsiKYn+cuTEoMtD/ZVazS5QVssBr9YhpCQA==}
     peerDependencies:
       preact: ^10.4.0 || ^11.0.0-0
-      vite: ^6.4.1
+      vite: '>=2.0.0'
 
   '@publint/pack@0.1.4':
     resolution: {integrity: sha512-HDVTWq3H0uTXiU0eeSQntcVUTPP3GamzeXI41+x7uU9J65JgWQh3qWZHblR1i0npXfFtF+mxBiU2nJH8znxWnQ==}
@@ -7455,7 +7462,7 @@ packages:
       '@solidjs/web': ^2.0.0-rc.10
       '@testing-library/jest-dom': ^5.16.6 || ^5.17.0 || ^6.0.0 || ^7.0.0
       solid-js: ^2.0.0-rc.10
-      vite: ^6.4.1
+      vite: ^8.0.0 || ^9.0.0
     peerDependenciesMeta:
       '@solidjs/start-devtools':
         optional: true
@@ -7520,7 +7527,7 @@ packages:
       '@sveltejs/vite-plugin-svelte': ^3.0.0 || ^4.0.0-next.1 || ^5.0.0 || ^6.0.0-next.0 || ^7.0.0
       svelte: ^4.0.0 || ^5.0.0-next.0
       typescript: ^5.3.3 || ^6.0.0
-      vite: ^6.4.1
+      vite: ^5.0.3 || ^6.0.0 || ^7.0.0-beta.0 || ^8.0.0
     peerDependenciesMeta:
       '@opentelemetry/api':
         optional: true
@@ -7540,14 +7547,14 @@ packages:
     peerDependencies:
       '@sveltejs/vite-plugin-svelte': ^5.0.0
       svelte: ^5.0.0
-      vite: ^6.4.1
+      vite: ^6.0.0
 
   '@sveltejs/vite-plugin-svelte@5.1.1':
     resolution: {integrity: sha512-Y1Cs7hhTc+a5E9Va/xwKlAJoariQyHY+5zBgCZg4PFWNYQ1nMN9sjK1zhw1gK69DuqVP++sht/1GZg1aRwmAXQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22}
     peerDependencies:
       svelte: ^5.0.0
-      vite: ^6.4.1
+      vite: ^6.0.0
 
   '@swc/counter@0.1.3':
     resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
@@ -7653,13 +7660,13 @@ packages:
   '@tailwindcss/vite@4.2.2':
     resolution: {integrity: sha512-mEiF5HO1QqCLXoNEfXVA1Tzo+cYsrqV7w9Juj2wdUFyW07JRenqMG225MvPwr3ZD9N1bFQj46X7r33iHxLUW0w==}
     peerDependencies:
-      vite: ^6.4.1
+      vite: ^5.2.0 || ^6 || ^7 || ^8
 
   '@tanstack/directive-functions-plugin@1.121.21':
     resolution: {integrity: sha512-B9z/HbF7gJBaRHieyX7f2uQ4LpLLAVAEutBZipH6w+CYD6RHRJvSVPzECGHF7icFhNWTiJQL2QR6K07s59yzEw==}
     engines: {node: '>=12'}
     peerDependencies:
-      vite: ^6.4.1
+      vite: '>=6.0.0'
 
   '@tanstack/eslint-config@0.3.2':
     resolution: {integrity: sha512-2g+PuGR3GuvvCiR3xZs+IMqAvnYU9bvH+jRml0BFBSxHBj22xFCTNvJWhvgj7uICFF9IchDkFUto91xDPMu5cg==}
@@ -7758,7 +7765,7 @@ packages:
     engines: {node: '>= 10'}
     peerDependencies:
       svelte: ^3 || ^4 || ^5 || ^5.0.0-next.0
-      vite: ^6.4.1
+      vite: '*'
       vitest: '*'
     peerDependenciesMeta:
       vite:
@@ -8176,25 +8183,20 @@ packages:
     resolution: {integrity: sha512-dOxxrhgyDIEUADhb/8OlV9JIqYLgos03YorAueTIeOUskLJSEsfwCByjbu98ctXitUN3znXKp0bYD/WHSudCeA==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     peerDependencies:
-      vite: ^6.4.1
+      vite: ^6.0.0 || ^7.0.0
 
   '@vitejs/plugin-react@4.7.0':
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
-      vite: ^6.4.1
+      vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
 
   '@vitejs/plugin-vue@5.2.4':
     resolution: {integrity: sha512-7Yx/SXSOcQq5HiiV3orevHUFn+pmMB4cgbEkDYgnkUWb0WfeQ/wa2yFv6D5ICiCQOVpjA7vYDXrC7AGO8yjDHA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
-      vite: ^6.4.1
+      vite: ^5.0.0 || ^6.0.0
       vue: ^3.2.25
-
-  '@vitest/coverage-istanbul@4.0.6':
-    resolution: {integrity: sha512-8Hk2Uc3GyLUWcOlQDiTuxmYKbmsmOfavEJW9soW9CfOACPB6Mbm3qKWLrdXMYr+1fX/XtZYnZ8JxfELAGEZaVA==}
-    peerDependencies:
-      vitest: 4.0.6
 
   '@vitest/coverage-istanbul@4.1.2':
     resolution: {integrity: sha512-WSz7+4a7PcMtMNvIP7AXUMffsq4JrWeJaguC8lg6fSQyGxSfaT4Rf81idqwxTT6qX5kjjZw2t9rAnCRRQobSqw==}
@@ -11917,10 +11919,6 @@ packages:
     resolution: {integrity: sha512-GCfE1mtsHGOELCU8e/Z7YWzpmybrx/+dSTfLrvY8qRmaY6zXTKWn6WQIjaAFw069icm6GVMNkgu0NzI4iPZUNw==}
     engines: {node: '>=10'}
 
-  istanbul-lib-source-maps@5.0.6:
-    resolution: {integrity: sha512-yg2d+Em4KizZC5niWhQaIomgf5WlL4vOOjZ5xGCmF8SnPE/mDWWXgvRExdcpCgh9lLRRa1/fSYp2ymmbJ1pI+A==}
-    engines: {node: '>=10'}
-
   istanbul-reports@3.2.0:
     resolution: {integrity: sha512-HGYWWS/ehqTV3xN10i23tkPkpH46MLCIMFNCaaKNavAXTF1RkqxawEPtnjnGZ6XKSInBKkiOA5BKS+aZiY3AvA==}
     engines: {node: '>=8'}
@@ -12602,9 +12600,6 @@ packages:
 
   magicast@0.2.11:
     resolution: {integrity: sha512-6saXbRDA1HMkqbsvHOU6HBjCVgZT460qheRkLhJQHWAbhXoWESI3Kn/dGGXyKs15FFKR85jsUqFx2sMK0wy/5g==}
-
-  magicast@0.3.5:
-    resolution: {integrity: sha512-L0WhttDl+2BOsybvEOLK7fW3UA0OQ0IQ2d6Zl2x/a6vVRs3bAY0ECOSHHeL5jD+SbOpOCUEi0y1DgHEn9Qn1AQ==}
 
   magicast@0.5.2:
     resolution: {integrity: sha512-E3ZJh4J3S9KfwdjZhe2afj6R9lGIN5Pher1pF39UGrXRqq/VDaGVIGN13BjHd2u8B61hArAGOnso7nBOouW3TQ==}
@@ -14280,6 +14275,7 @@ packages:
 
   react-native-edge-to-edge@1.6.0:
     resolution: {integrity: sha512-2WCNdE3Qd6Fwg9+4BpbATUxCLcouF6YRY7K+J36KJ4l3y+tWN6XCqAC4DuoGblAAbb2sLkhEDp4FOlbOIot2Og==}
+    deprecated: This package is deprecated. Set edgeToEdgeEnabled=true in android/gradle.properties instead.
     peerDependencies:
       react: '*'
       react-native: '*'
@@ -16316,14 +16312,14 @@ packages:
   vite-plugin-externalize-deps@0.9.0:
     resolution: {integrity: sha512-wg3qb5gCy2d1KpPKyD9wkXMcYJ84yjgziHrStq9/8R7chhUC73mhQz+tVtvhFiICQHsBn1pnkY4IBbPqF9JHNw==}
     peerDependencies:
-      vite: ^6.4.1
+      vite: ^2.0.0 || ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
 
   vite-plugin-solid@2.11.11:
     resolution: {integrity: sha512-YMZCXsLw9kyuvQFEdwLP27fuTQJLmjNoHy90AOJnbRuJ6DwShUxKFo38gdFrWn9v11hnGicKCZEaeI/TFs6JKw==}
     peerDependencies:
       '@testing-library/jest-dom': ^5.16.6 || ^5.17.0 || ^6.*
       solid-js: ^1.7.2
-      vite: ^6.4.1
+      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
     peerDependenciesMeta:
       '@testing-library/jest-dom':
         optional: true
@@ -16331,7 +16327,7 @@ packages:
   vite-prerender-plugin@0.5.13:
     resolution: {integrity: sha512-IKSpYkzDBsKAxa05naRbj7GvNVMSdww/Z/E89oO3xndz+gWnOBOKOAbEXv7qDhktY/j3vHgJmoV1pPzqU2tx9g==}
     peerDependencies:
-      vite: ^6.4.1
+      vite: 5.x || 6.x || 7.x || 8.x
 
   vite-tsconfig-paths@5.1.4:
     resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
@@ -16354,6 +16350,46 @@ packages:
       sass-embedded: '*'
       stylus: '*'
       sugarss: '*'
+      terser: ^5.16.0
+      tsx: ^4.8.1
+      yaml: ^2.4.2
+    peerDependenciesMeta:
+      '@types/node':
+        optional: true
+      jiti:
+        optional: true
+      less:
+        optional: true
+      lightningcss:
+        optional: true
+      sass:
+        optional: true
+      sass-embedded:
+        optional: true
+      stylus:
+        optional: true
+      sugarss:
+        optional: true
+      terser:
+        optional: true
+      tsx:
+        optional: true
+      yaml:
+        optional: true
+
+  vite@7.1.11:
+    resolution: {integrity: sha512-uzcxnSDVjAopEUjljkWh8EIrg6tlzrjFUfMcR1EVsRDGwf/ccef0qQPRyOrROwhrTDaApueq+ja+KLPlzR/zdg==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    hasBin: true
+    peerDependencies:
+      '@types/node': ^22.15.3
+      jiti: '>=1.21.0'
+      less: ^4.0.0
+      lightningcss: ^1.21.0
+      sass: ^1.70.0
+      sass-embedded: ^1.70.0
+      stylus: '>=0.54.8'
+      sugarss: ^5.0.0
       terser: ^5.16.0
       tsx: ^4.8.1
       yaml: ^2.4.2
@@ -17223,7 +17259,7 @@ snapshots:
       '@babel/helper-annotate-as-pure': 7.27.3
       '@babel/helper-split-export-declaration': 7.24.7
       '@inquirer/confirm': 5.1.14(@types/node@22.19.15)
-      '@vitejs/plugin-basic-ssl': 2.1.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
+      '@vitejs/plugin-basic-ssl': 2.1.0(vite@7.1.11(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
       beasties: 0.3.5
       browserslist: 4.28.2
       esbuild: 0.27.4
@@ -17243,7 +17279,7 @@ snapshots:
       tinyglobby: 0.2.14
       tslib: 2.8.1
       typescript: 5.8.3
-      vite: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
+      vite: 7.1.11(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
       watchpack: 2.4.4
     optionalDependencies:
       '@angular/core': 20.3.18(@angular/compiler@20.3.18)(rxjs@7.8.2)(zone.js@0.15.0)
@@ -21634,13 +21670,6 @@ snapshots:
     optionalDependencies:
       '@solidjs/router': 0.15.4(solid-js@1.9.12)
 
-  '@solidjs/testing-library@0.8.10(@solidjs/router@0.15.4(solid-js@2.0.0-rc.13))(solid-js@2.0.0-rc.13)':
-    dependencies:
-      '@testing-library/dom': 10.4.1
-      solid-js: 2.0.0-rc.13
-    optionalDependencies:
-      '@solidjs/router': 0.15.4(solid-js@2.0.0-rc.13)
-
   '@solidjs/testing-library@1.0.0-beta.3(@solidjs/web@2.0.0-rc.15(solid-js@2.0.0-rc.15))(solid-js@2.0.0-rc.15)':
     dependencies:
       '@solidjs/web': 2.0.0-rc.15(solid-js@2.0.0-rc.15)
@@ -22616,9 +22645,9 @@ snapshots:
       recast: 0.23.11
       vinxi: 0.5.11(@types/node@22.19.15)(@vercel/functions@2.2.13)(db0@0.3.4)(idb-keyval@6.2.2)(ioredis@5.10.1)(jiti@2.6.1)(lightningcss@1.33.0)(rolldown@1.2.9)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
 
-  '@vitejs/plugin-basic-ssl@2.1.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))':
+  '@vitejs/plugin-basic-ssl@2.1.0(vite@7.1.11(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
-      vite: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
+      vite: 7.1.11(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
 
   '@vitejs/plugin-react@4.7.0(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))':
     dependencies:
@@ -22641,21 +22670,6 @@ snapshots:
     dependencies:
       vite: 6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
       vue: 3.5.31(typescript@5.9.3)
-
-  '@vitest/coverage-istanbul@4.0.6(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))':
-    dependencies:
-      '@istanbuljs/schema': 0.1.3
-      debug: 4.4.3
-      istanbul-lib-coverage: 3.2.2
-      istanbul-lib-instrument: 6.0.3
-      istanbul-lib-report: 3.0.1
-      istanbul-lib-source-maps: 5.0.6
-      istanbul-reports: 3.2.0
-      magicast: 0.3.5
-      tinyrainbow: 3.1.0
-      vitest: 4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
-    transitivePeerDependencies:
-      - supports-color
 
   '@vitest/coverage-istanbul@4.1.2(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))':
     dependencies:
@@ -23801,6 +23815,13 @@ snapshots:
       babel-plugin-jsx-dom-expressions: 0.40.6(@babel/core@7.29.0)
     optionalDependencies:
       solid-js: 2.0.0-rc.13
+
+  babel-preset-solid@1.9.12(@babel/core@7.29.0)(solid-js@2.0.0-rc.15):
+    dependencies:
+      '@babel/core': 7.29.0
+      babel-plugin-jsx-dom-expressions: 0.40.6(@babel/core@7.29.0)
+    optionalDependencies:
+      solid-js: 2.0.0-rc.15
 
   bail@2.0.2: {}
 
@@ -25352,13 +25373,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  esbuild-plugin-solid@0.5.0(esbuild@0.27.4)(solid-js@2.0.0-rc.13):
+  esbuild-plugin-solid@0.5.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15):
     dependencies:
       '@babel/core': 7.29.0
       '@babel/preset-typescript': 7.28.5(@babel/core@7.29.0)
-      babel-preset-solid: 1.9.12(@babel/core@7.29.0)(solid-js@2.0.0-rc.13)
+      babel-preset-solid: 1.9.12(@babel/core@7.29.0)(solid-js@2.0.0-rc.15)
       esbuild: 0.27.4
-      solid-js: 2.0.0-rc.13
+      solid-js: 2.0.0-rc.15
     transitivePeerDependencies:
       - supports-color
 
@@ -27282,14 +27303,6 @@ snapshots:
       make-dir: 4.0.0
       supports-color: 7.2.0
 
-  istanbul-lib-source-maps@5.0.6:
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      debug: 4.4.3
-      istanbul-lib-coverage: 3.2.2
-    transitivePeerDependencies:
-      - supports-color
-
   istanbul-reports@3.2.0:
     dependencies:
       html-escaper: 2.0.2
@@ -28088,12 +28101,6 @@ snapshots:
       '@babel/parser': 7.29.2
       '@babel/types': 7.29.0
       recast: 0.23.11
-
-  magicast@0.3.5:
-    dependencies:
-      '@babel/parser': 7.29.2
-      '@babel/types': 7.29.0
-      source-map-js: 1.2.1
 
   magicast@0.5.2:
     dependencies:
@@ -32323,9 +32330,9 @@ snapshots:
       - solid-js
       - supports-color
 
-  tsup-preset-solid@2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.13)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)):
+  tsup-preset-solid@2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)):
     dependencies:
-      esbuild-plugin-solid: 0.5.0(esbuild@0.27.4)(solid-js@2.0.0-rc.13)
+      esbuild-plugin-solid: 0.5.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)
       tsup: 8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
     transitivePeerDependencies:
       - esbuild
@@ -33074,6 +33081,24 @@ snapshots:
       postcss: 8.5.8
       rollup: 4.60.1
       tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 22.19.15
+      fsevents: 2.3.3
+      jiti: 2.6.1
+      lightningcss: 1.33.0
+      sass: 1.90.0
+      terser: 5.46.1
+      tsx: 4.21.0
+      yaml: 2.8.3
+
+  vite@7.1.11(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3):
+    dependencies:
+      esbuild: 0.27.4
+      fdir: 6.5.0(picomatch@4.0.7)
+      picomatch: 4.0.7
+      postcss: 8.5.28
+      rollup: 4.60.1
+      tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 22.19.15
       fsevents: 2.3.3

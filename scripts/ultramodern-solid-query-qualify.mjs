@@ -76,22 +76,11 @@ async function run(command, args, cwd = repo) {
   })
 }
 try {
-  const hook = path.join(work, 'strict-config.cjs')
-  await writeFile(
-    hook,
-    `module.exports = { hooks: { updateConfig(config) {
-    const overrides = { ...config.overrides }; delete overrides.vite
-    return { ...config, overrides, minimumReleaseAge: 1440, minimumReleaseAgeExclude: [], packageImportMethod: 'clone-or-copy', strictPeerDependencies: true }
-  } } }\n`,
-  )
   const pnpm = process.env.PNPM_BIN ?? 'pnpm'
-  const strict = [
-    `--config.pnpmfile=${hook}`,
-    '--config.strictPeerDependencies=true',
-    '--config.packageImportMethod=clone-or-copy',
-  ]
+  // Source installs use the committed strict workspace configuration so their
+  // frozen lockfile is identical in normal PR CI and this qualification.
   const sourceConfig = [
-    ...strict,
+    '--strict-peer-dependencies',
     '--workspace-packages=packages/solid-query',
     '--workspace-packages=packages/query-test-utils',
     '--workspace-packages=packages/query-core',
