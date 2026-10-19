@@ -80,7 +80,6 @@ try {
   // Source installs use the committed strict workspace configuration so their
   // frozen lockfile is identical in normal PR CI and this qualification.
   const sourceConfig = [
-    '--strict-peer-dependencies',
     '--workspace-packages=packages/solid-query',
     '--workspace-packages=packages/query-test-utils',
     '--workspace-packages=packages/query-core',
@@ -88,6 +87,7 @@ try {
   ]
   await run(pnpm, [
     ...sourceConfig,
+    '--strict-peer-dependencies',
     '--filter',
     '.',
     '--filter',
