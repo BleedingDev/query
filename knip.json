@@ -9,6 +9,9 @@
   ],
   "ignoreWorkspaces": ["examples/**", "integrations/**"],
   "workspaces": {
+    ".": {
+      "entry": ["scripts/ultramodern-solid-query-check.mjs"]
+    },
     "packages/angular-query-experimental": {
       "entry": [
         "src/devtools/production/index.ts",
@@ -20,17 +23,7 @@
       "ignore": ["**/__testfixtures__/**"]
     },
     "packages/solid-query": {
-      "ignore": ["src/__tests__/fixtures/**"],
-      "ignoreDependencies": ["esbuild"]
-    },
-    "packages/solid-query-devtools": {
-      "ignoreDependencies": ["esbuild"]
-    },
-    "packages/solid-query-persist-client": {
-      "ignoreDependencies": ["esbuild"]
-    },
-    "packages/lit-query": {
-      "ignore": ["src/tests/**"]
+      "ignore": ["src/__tests__/fixtures/**"]
     },
     "packages/vue-query": {
       "ignoreDependencies": ["vue2", "vue2.7"]

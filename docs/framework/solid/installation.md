@@ -10,25 +10,25 @@ or a good ol' `<script>` via
 ### NPM
 
 ```bash
-npm i @tanstack/solid-query
+npm i @tanstack/solid-query@rc @tanstack/query-core@^5.102.0
 ```
 
 or
 
 ```bash
-pnpm add @tanstack/solid-query
+pnpm add @tanstack/solid-query@rc @tanstack/query-core@^5.102.0
 ```
 
 or
 
 ```bash
-yarn add @tanstack/solid-query
+yarn add @tanstack/solid-query@rc @tanstack/query-core@^5.102.0
 ```
 
 or
 
 ```bash
-bun add @tanstack/solid-query
+bun add @tanstack/solid-query@rc @tanstack/query-core@^5.102.0
 ```
 
 > Wanna give it a spin before you download? Try out the [simple](./examples/simple) or [basic](./examples/basic) examples!
@@ -39,11 +39,15 @@ If you're not using a module bundler or package manager, you can also use this l
 
 ```html
 <script type="module">
-  import { QueryClient } from 'https://esm.sh/@tanstack/solid-query'
+  import { QueryClient } from 'https://esm.sh/@tanstack/solid-query@rc?deps=@tanstack/query-core@5.102.0'
 </script>
 ```
 
 ### Requirements
+
+Solid Query requires `solid-js` and `@solidjs/web` versions `>=2.0.0-rc.13 <3.0.0`, and `@tanstack/query-core` versions `>=5.102.0 <6.0.0`.
+
+Install Query Core alongside Solid Query so integrations share the same client and cache types. Create your client with `QueryClient` from `@tanstack/solid-query`, then pass that client to `QueryClientProvider` and any Query Core integration.
 
 Solid Query is optimized for modern browsers. It is compatible with the following browsers config
 

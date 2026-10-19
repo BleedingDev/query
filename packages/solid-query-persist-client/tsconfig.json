@@ -4,7 +4,8 @@
     "outDir": "./dist-ts",
     "rootDir": ".",
     "jsx": "preserve",
-    "jsxImportSource": "@solidjs/web"
+    "jsxImportSource": "@solidjs/web",
+    "customConditions": []
   },
   "include": [
     "src",
@@ -13,8 +14,5 @@
     "*.config.js",
     "package.json"
   ],
-  "references": [
-    { "path": "../query-persist-client-core" },
-    { "path": "../solid-query" }
-  ]
+  "references": [{ "path": "../solid-query" }]
 }

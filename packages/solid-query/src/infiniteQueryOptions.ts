@@ -34,6 +34,22 @@ export type DefinedInitialDataInfiniteOptions<
       | (() => NonUndefinedGuard<InfiniteData<TQueryFnData, TPageParam>>)
   }
 >
+export interface InfiniteQueryOptionsWithDataTag<
+  TQueryFnData,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+> extends InfiniteQueryOptions<
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryKey,
+  TPageParam
+> {
+  queryKey: DataTag<TQueryKey, InfiniteData<TQueryFnData>>
+}
+
 export function infiniteQueryOptions<
   TQueryFnData,
   TError = DefaultError,
@@ -50,17 +66,25 @@ export function infiniteQueryOptions<
       TPageParam
     >
   >,
-): ReturnType<
-  DefinedInitialDataInfiniteOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey,
-    TPageParam
+): InfiniteQueryOptionsWithDataTag<
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryKey,
+  TPageParam
+> &
+  Pick<
+    ReturnType<
+      DefinedInitialDataInfiniteOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >
+    >,
+    'initialData'
   >
-> & {
-  queryKey: DataTag<TQueryKey, InfiniteData<TQueryFnData>>
-}
 export function infiniteQueryOptions<
   TQueryFnData,
   TError = DefaultError,
@@ -77,17 +101,25 @@ export function infiniteQueryOptions<
       TPageParam
     >
   >,
-): ReturnType<
-  UndefinedInitialDataInfiniteOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryKey,
-    TPageParam
+): InfiniteQueryOptionsWithDataTag<
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryKey,
+  TPageParam
+> &
+  Pick<
+    ReturnType<
+      UndefinedInitialDataInfiniteOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryKey,
+        TPageParam
+      >
+    >,
+    'initialData'
   >
-> & {
-  queryKey: DataTag<TQueryKey, InfiniteData<TQueryFnData>>
-}
 
 export function infiniteQueryOptions(options: unknown) {
   return options

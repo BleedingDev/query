@@ -19,6 +19,7 @@ import type {
 import type { Accessor } from 'solid-js'
 import type {
   DefinedInitialDataInfiniteOptions,
+  InfiniteQueryOptionsWithDataTag,
   UndefinedInitialDataInfiniteOptions,
 } from './infiniteQueryOptions'
 
@@ -74,6 +75,54 @@ function hasPreviousPage(
   )
 }
 
+export function useInfiniteQuery<
+  TQueryFnData,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+>(
+  options: Accessor<
+    InfiniteQueryOptionsWithDataTag<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryKey,
+      TPageParam
+    > &
+      Pick<
+        ReturnType<
+          DefinedInitialDataInfiniteOptions<
+            TQueryFnData,
+            TError,
+            TData,
+            TQueryKey,
+            TPageParam
+          >
+        >,
+        'initialData'
+      >
+  >,
+  queryClient?: Accessor<QueryClient>,
+): DefinedUseInfiniteQueryResult<TData, TError>
+export function useInfiniteQuery<
+  TQueryFnData,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+>(
+  options: Accessor<
+    InfiniteQueryOptionsWithDataTag<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryKey,
+      TPageParam
+    > & { initialData?: undefined }
+  >,
+  queryClient?: Accessor<QueryClient>,
+): UseInfiniteQueryResult<TData, TError>
 export function useInfiniteQuery<
   TQueryFnData,
   TError = DefaultError,

@@ -88,7 +88,7 @@ describe('useMutationState', () => {
   })
 
   it('should return variables while the mutation is pending', async () => {
-    const variables: Array<Array<unknown>> = []
+    const variables: Array<ReadonlyArray<unknown>> = []
     const mutationKey = queryKey()
 
     function Variables() {

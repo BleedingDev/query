@@ -9,6 +9,7 @@ concurrency:
 
 env:
   NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+  NX_NO_CLOUD: ${{ github.repository != 'TanStack/query' }}
 
 permissions: {}
 
@@ -26,17 +27,18 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Start Nx Agents
+        if: ${{ github.repository == 'TanStack/query' }}
         run: npx nx-cloud start-ci-run --distribute-on=".nx/workflows/dynamic-changesets.yaml"
       - name: Setup Tools
         uses: TanStack/config/.github/setup@e4b48f16568324f76f467aa4c2aac2f05db632c3
       - name: Get base and head commits for `nx affected`
         uses: nrwl/nx-set-shas@3e9ad7370203c1e93d109be57f3b72eb0eb511b1 # v4.4.0
         with:
-          main-branch-name: main
+          main-branch-name: ${{ github.event.pull_request.base.ref }}
       - name: Run Checks
         run: pnpm run test:pr
       - name: Stop Nx Agents
-        if: ${{ always() }}
+        if: ${{ always() && github.repository == 'TanStack/query' }}
         run: npx nx-cloud stop-all-agents
   preview:
     name: Preview
@@ -54,6 +56,7 @@ jobs:
       - name: Build Packages
         run: pnpm run build:all
       - name: Publish Previews
+        if: ${{ github.repository == 'TanStack/query' }}
         run: pnpx pkg-pr-new publish --pnpm --compact './packages/*' --template './examples/*/*'
       - name: Determine commit SHA
         id: determine-sha
