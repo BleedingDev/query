@@ -12,6 +12,8 @@ trustPolicyExclude:
   - 'undici-types@6.21.0' # Socket score 100/100; popular and healthy.
 minimumReleaseAgeExclude: []
 packageImportMethod: clone-or-copy
+syncInjectedDepsAfterScripts:
+  - build
 
 packages:
   - 'packages/*'

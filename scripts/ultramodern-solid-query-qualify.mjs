@@ -60,6 +60,7 @@ async function run(command, args, cwd = repo) {
                 .filter(Boolean)
                 .join(path.delimiter)
             : env.PATH,
+        pnpm_config_verify_deps_before_run: 'error',
         NX_DAEMON: 'false',
         NX_NO_CLOUD: 'true',
         NX_CACHE_DIRECTORY: path.join(work, 'nx-cache'),
@@ -83,6 +84,10 @@ try {
     '--workspace-packages=packages/solid-query',
     '--workspace-packages=packages/query-test-utils',
     '--workspace-packages=packages/query-core',
+    '--workspace-packages=packages/query-devtools',
+    '--workspace-packages=packages/query-persist-client-core',
+    '--workspace-packages=packages/solid-query-devtools',
+    '--workspace-packages=packages/solid-query-persist-client',
     `--config.virtualStoreDir=${path.join(repo, 'node_modules/.pnpm')}`,
   ]
   await run(pnpm, [
@@ -92,6 +97,10 @@ try {
     '.',
     '--filter',
     '@tanstack/solid-query...',
+    '--filter',
+    '@tanstack/solid-query-devtools...',
+    '--filter',
+    '@tanstack/solid-query-persist-client...',
     'install',
     '--frozen-lockfile',
   ])
@@ -100,7 +109,13 @@ try {
     '--exit-code',
     '--',
     'package.json',
-    'packages/solid-query/package.json',
+    ...[
+      'solid-query',
+      'query-devtools',
+      'query-persist-client-core',
+      'solid-query-devtools',
+      'solid-query-persist-client',
+    ].map((name) => `packages/${name}/package.json`),
     'pnpm-workspace.yaml',
     'pnpm-lock.yaml',
   ])
@@ -153,21 +168,45 @@ try {
     '@arethetypeswrong/cli/dist/index.js',
     '--pack',
   )
-  const packs = path.join(work, 'packs')
-  await mkdir(packs)
-  await run(pnpm, [
-    ...sourceConfig,
-    '--dir',
-    'packages/solid-query',
-    'pack',
-    '--pack-destination',
-    packs,
-  ])
-  const archives = (await readdir(packs)).filter((name) =>
-    name.endsWith('.tgz'),
-  )
-  assert.equal(archives.length, 1, 'Expected one packed Solid Query archive')
-  const archive = path.join(packs, archives[0])
+  // Build the shared providers normally before their injected copies are used by
+  // the Solid wrappers. pnpm's build lifecycle synchronizes the injected peers.
+  const providerPackages = [
+    'query-devtools',
+    'query-persist-client-core',
+    'solid-query-devtools',
+    'solid-query-persist-client',
+  ]
+  for (const name of ['query-core', ...providerPackages]) {
+    await run(process.execPath, [
+      path.join(repo, 'node_modules/nx/bin/nx.js'),
+      'exec',
+      `--projects=@tanstack/${name}`,
+      '--',
+      pnpm,
+      ...sourceConfig,
+      'run',
+      'build',
+    ])
+  }
+  const packed = new Map()
+  for (const name of ['solid-query', ...providerPackages]) {
+    const destination = path.join(work, 'packs', name)
+    await mkdir(destination, { recursive: true })
+    await run(pnpm, [
+      ...sourceConfig,
+      '--dir',
+      `packages/${name}`,
+      'pack',
+      '--pack-destination',
+      destination,
+    ])
+    const archives = (await readdir(destination)).filter((name) =>
+      name.endsWith('.tgz'),
+    )
+    assert.equal(archives.length, 1, `Expected one packed ${name} archive`)
+    packed.set(`@tanstack/${name}`, path.join(destination, archives[0]))
+  }
+  const archive = packed.get('@tanstack/solid-query')
   const consumer = path.join(work, 'consumer')
   await mkdir(consumer)
   await writeFile(
@@ -177,7 +216,9 @@ try {
         private: true,
         type: 'module',
         dependencies: {
-          '@tanstack/solid-query': `file:${archive}`,
+          ...Object.fromEntries(
+            [...packed].map(([name, archive]) => [name, `file:${archive}`]),
+          ),
           '@tanstack/query-core': '5.102.0',
           '@tanstack/router-core': '1.171.37',
           '@tanstack/router-ssr-query-core': '1.169.3',
@@ -195,7 +236,15 @@ try {
   )
   await writeFile(
     path.join(consumer, 'pnpm-workspace.yaml'),
-    'packages: []\nminimumReleaseAge: 1440\nminimumReleaseAgeExclude: []\nstrictPeerDependencies: true\npackageImportMethod: clone-or-copy\nallowBuilds:\n  esbuild: true\n',
+    // pnpm 11 reads overrides from workspace YAML, not package.json. Keep the
+    // workspace-rewritten provider ranges on the exact tarballs under test.
+    'packages: []\nminimumReleaseAge: 1440\nminimumReleaseAgeExclude: []\nstrictPeerDependencies: true\nautoInstallPeers: false\npackageImportMethod: clone-or-copy\nallowBuilds:\n  esbuild: true\noverrides:\n' +
+      ['@tanstack/query-devtools', '@tanstack/query-persist-client-core']
+        .map(
+          (name) =>
+            `  ${JSON.stringify(name)}: ${JSON.stringify(`file:${packed.get(name)}`)}\n`,
+        )
+        .join(''),
   )
   await writeFile(
     path.join(consumer, 'tsconfig.json'),
@@ -268,7 +317,11 @@ export const customErrorOptions = queryOptions<{ title: string }, PostError>({
   await writeFile(
     path.join(consumer, 'contract.ts'),
     `import { QueryClient, useQuery, useInfiniteQuery, type QueryClientProviderProps } from '@tanstack/solid-query'
-import type { QueryClient as CoreClient } from '@tanstack/query-core'
+import { onlineManager, type QueryClient as CoreClient } from '@tanstack/query-core'
+import type { TanstackQueryDevtoolsConfig } from '@tanstack/query-devtools'
+import { SolidQueryDevtools } from '@tanstack/solid-query-devtools'
+import type { PersistQueryClientOptions as SharedPersistenceOptions } from '@tanstack/query-persist-client-core'
+import type { PersistQueryClientOptions, PersistQueryClientProviderProps, Persister } from '@tanstack/solid-query-persist-client'
 import type { AnyRouter } from '@tanstack/router-core'
 import { setupCoreRouterSsrQueryIntegration } from '@tanstack/router-ssr-query-core'
 import { postOptions, postsOptions, infinitePostsOptions, definedInfinitePostsOptions, customErrorOptions, type PostError } from './emitted/query-options.js'
@@ -285,6 +338,13 @@ export const definedInfinitePostList: Array<{ title: string; body: string }> = d
 export const postError: PostError | null | undefined = client.getQueryState(customErrorOptions.queryKey)?.error
 export const coreClient: CoreClient = client
 export const provider: QueryClientProviderProps = { client }
+export const devtools: Parameters<typeof SolidQueryDevtools>[0] = { client }
+export const sharedDevtools: TanstackQueryDevtoolsConfig = { client, onlineManager, queryFlavor: 'Solid Query', version: '6' }
+const persister: Persister = { persistClient() {}, restoreClient() { return undefined }, removeClient() {} }
+export const persistence: PersistQueryClientOptions = { queryClient: client, persister }
+export const sharedPersistence: SharedPersistenceOptions = persistence
+export const solidPersistence: PersistQueryClientOptions = sharedPersistence
+export const persistenceProvider: PersistQueryClientProviderProps = { client, persistOptions: { persister } }
 export const fetchedPost: Promise<{ title: string; body: string }> = client.query(postOptions('post'))
 export function checkHooks() {
   const post: { title: string; body: string } = useQuery(() => postOptions('post')).data
@@ -306,9 +366,22 @@ import { createRequire } from 'node:module'
 import { realpathSync } from 'node:fs'
 import { QueryClient, queryOptions, infiniteQueryOptions } from '@tanstack/solid-query'
 import { QueryClient as CoreClient, QueryCache, dehydrateQuery } from '@tanstack/query-core'
+import { persistQueryClientSave, persistQueryClientRestore } from '@tanstack/solid-query-persist-client'
+import { persistQueryClientSave as sharedSave, persistQueryClientRestore as sharedRestore } from '@tanstack/query-persist-client-core'
 const require = createRequire(import.meta.url)
 const adapterRequire = createRequire(require.resolve('@tanstack/solid-query'))
-assert.equal(realpathSync(require.resolve('@tanstack/query-core')), realpathSync(adapterRequire.resolve('@tanstack/query-core')))
+const corePath = realpathSync(require.resolve('@tanstack/query-core'))
+assert.equal(corePath, realpathSync(adapterRequire.resolve('@tanstack/query-core')))
+for (const name of ['@tanstack/query-devtools', '@tanstack/query-persist-client-core', '@tanstack/solid-query-devtools', '@tanstack/solid-query-persist-client']) {
+  const providerRequire = createRequire(require.resolve(name))
+  assert.equal(realpathSync(providerRequire.resolve('@tanstack/query-core')), corePath, name + ' must use the caller Core')
+}
+for (const [wrapper, provider] of [['@tanstack/solid-query-devtools', '@tanstack/query-devtools'], ['@tanstack/solid-query-persist-client', '@tanstack/query-persist-client-core']]) {
+  const wrapperRequire = createRequire(require.resolve(wrapper))
+  assert.equal(realpathSync(wrapperRequire.resolve(provider)), realpathSync(require.resolve(provider)), wrapper + ' must use the packed provider')
+}
+assert.equal(persistQueryClientSave, sharedSave)
+assert.equal(persistQueryClientRestore, sharedRestore)
 const cache = new QueryCache()
 const client = new QueryClient({ queryCache: cache })
 try {
@@ -323,6 +396,26 @@ try {
   assert.deepEqual(pages, { pages: [{ page: 0 }], pageParams: [0] })
   const cjs = require('@tanstack/solid-query')
   assert(new cjs.QueryClient() instanceof require('@tanstack/query-core').QueryClient)
+  let saved
+  let saves = 0
+  const persister = {
+    persistClient(snapshot) { saved = structuredClone(snapshot); saves++ },
+    restoreClient() { return saved },
+    removeClient() { saved = undefined },
+  }
+  client.setQueryData(['packed', 'persisted'], { value: 'caller cache' })
+  await persistQueryClientSave({ queryClient: client, persister, buster: 'packed-providers' })
+  assert.equal(saves, 1)
+  assert(saved.clientState.queries.some(query => query.queryKey.join('/') === 'packed/persisted'))
+  client.clear()
+  assert.equal(cache.getAll().length, 0)
+  await persistQueryClientRestore({ queryClient: client, persister, buster: 'packed-providers' })
+  assert.equal(client.getQueryCache(), cache, 'Restore must retain the caller cache')
+  assert.deepEqual(client.getQueryData(['packed', 'persisted']), { value: 'caller cache' })
+  const restored = cache.find({ queryKey: ['packed', 'persisted'] })
+  assert(restored)
+  assert(cache.getAll().includes(restored))
+  console.log('Packed providers retain one physical caller Core and save/restore its actual cache')
   console.log('Packed Query ESM/CJS shared Core identity, query, infiniteQuery and dehydrateQuery accepted')
 } finally { client.clear() }
 `,
@@ -392,7 +485,7 @@ console.log('Packed Query production/development native Provider, hooks and shar
   await writeFile(
     consumerHook,
     `module.exports = { hooks: { updateConfig(config) {
-    return { ...config, minimumReleaseAge: 1440, minimumReleaseAgeExclude: [], packageImportMethod: 'clone-or-copy', strictPeerDependencies: true, allowBuilds: { esbuild: true } }
+    return { ...config, minimumReleaseAge: 1440, minimumReleaseAgeExclude: [], packageImportMethod: 'clone-or-copy', strictPeerDependencies: true, autoInstallPeers: false, allowBuilds: { esbuild: true } }
   } } }\n`,
   )
   await run(
@@ -400,6 +493,7 @@ console.log('Packed Query production/development native Provider, hooks and shar
     [
       `--config.pnpmfile=${consumerHook}`,
       '--config.strictPeerDependencies=true',
+      '--config.autoInstallPeers=false',
       '--config.packageImportMethod=clone-or-copy',
       'install',
       '--no-frozen-lockfile',
@@ -424,6 +518,20 @@ console.log('Packed Query production/development native Provider, hooks and shar
   const sha512 = createHash('sha512')
     .update(await readFile(archive))
     .digest('base64')
+  const providerProofs = await Promise.all(
+    providerPackages.map(async (name) => ({
+      package: `@tanstack/${name}`,
+      packageVersion: JSON.parse(
+        await readFile(
+          path.join(repo, 'packages', name, 'package.json'),
+          'utf8',
+        ),
+      ).version,
+      integrity: `sha512-${createHash('sha512')
+        .update(await readFile(packed.get(`@tanstack/${name}`)))
+        .digest('base64')}`,
+    })),
+  )
   const source = process.env.GITHUB_SHA
   assert(
     source && /^[a-f0-9]{40}$/.test(source),
@@ -452,6 +560,7 @@ console.log('Packed Query production/development native Provider, hooks and shar
         integrity: `sha512-${sha512}`,
         solid: '2.0.0-rc.15',
         queryCore: '5.102.0',
+        providerProofs,
         checks: [
           'source unit and type tests',
           'lint',
@@ -463,6 +572,8 @@ console.log('Packed Query production/development native Provider, hooks and shar
           'public Provider and SSR types',
           'shared ESM/CJS Core identity, query, infiniteQuery and dehydration',
           'production/development native Provider, hooks and cache',
+          'five packed archives with strict explicit peers and caller-owned provider Core',
+          'provider public DTS share caller QueryClient and persistence saves/restores its cache',
         ],
       },
       null,

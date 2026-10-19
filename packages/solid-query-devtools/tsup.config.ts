@@ -1,29 +1,26 @@
-// @ts-nocheck - Config file uses untyped babel/esbuild imports for the custom Solid v2 build plugin
 import { parse } from 'path'
 import { readFile } from 'fs/promises'
+import { createRequire } from 'node:module'
 import { transformAsync } from '@babel/core'
-import solid from '@solidjs/babel-plugin'
-import ts from '@babel/preset-typescript'
 import { defineConfig } from 'tsup'
-import { generateTsupOptions, parsePresetOptions } from 'tsup-preset-solid'
-
 import type { Plugin } from 'esbuild'
+import type { Options } from 'tsup'
 
-// Custom esbuild plugin that compiles JSX with @solidjs/babel-plugin — the
-// Solid 2.0 compiler, whose output targets the same @solidjs/web runtime the
-// package declares as a peer (tsup-preset-solid's own plugin is Solid 1.x).
-function solidV2Plugin(options: { generate: 'dom' | 'ssr' }): Plugin {
+const require = createRequire(import.meta.url)
+const typescriptPreset = require.resolve('@babel/preset-typescript')
+const solidPlugin = require.resolve('@solidjs/babel-plugin')
+
+function solidV2Plugin(): Plugin {
   return {
     name: 'esbuild:solid-v2',
     setup(build) {
       build.onLoad({ filter: /\.(t|j)sx$/ }, async (args) => {
         const source = await readFile(args.path, { encoding: 'utf-8' })
         const { name, ext } = parse(args.path)
-        const filename = name + ext
         const result = await transformAsync(source, {
-          presets: [[ts, {}]],
-          plugins: [[solid, { generate: options.generate }]],
-          filename,
+          presets: [[typescriptPreset, {}]],
+          plugins: [[solidPlugin, { generate: 'dom' }]],
+          filename: name + ext,
           sourceMaps: 'inline',
         })
         if (result?.code === undefined || result.code === null) {
@@ -35,46 +32,41 @@ function solidV2Plugin(options: { generate: 'dom' | 'ssr' }): Plugin {
   }
 }
 
-const preset_options = {
-  entries: {
-    entry: 'src/index.tsx',
-    dev_entry: true,
-  },
-  cjs: true,
-  drop_console: true,
-  modify_esbuild_options(esbuildOptions: any, permutation: any) {
-    if (permutation.type.dev) {
-      esbuildOptions.conditions = ['development']
-    }
-    return esbuildOptions
-  },
-}
-
-export default defineConfig(() => {
-  const parsed_data = parsePresetOptions(preset_options)
-  const tsup_options = generateTsupOptions(parsed_data)
-
-  tsup_options.forEach((tsup_option) => {
-    tsup_option.outDir = 'build'
-    tsup_option.experimentalDts = true
-    delete tsup_option.dts
-
-    // Replace the default solid esbuild plugin (Solid 1.x's babel-preset-solid)
-    // with the Solid 2.0 compiler.
-    if (tsup_option.esbuildPlugins) {
-      const nonSolidPlugins = tsup_option.esbuildPlugins.filter(
-        (p) => !p.name.includes('solid'),
-      )
-      const hasSolidPlugin =
-        nonSolidPlugins.length < tsup_option.esbuildPlugins.length
-      if (hasSolidPlugin) {
-        tsup_option.esbuildPlugins = [
-          solidV2Plugin({ generate: 'dom' }),
-          ...nonSolidPlugins,
-        ]
-      }
-    }
-  })
-
-  return tsup_options
-})
+export default defineConfig(
+  [false, true].flatMap((development) =>
+    [false, true].map<Options>((preserveJsx) => ({
+      target: 'esnext',
+      platform: 'browser',
+      format: preserveJsx ? 'esm' : ['esm', 'cjs'],
+      clean: !development && !preserveJsx,
+      entry: { [development ? 'dev' : 'index']: 'src/index.tsx' },
+      outDir: 'build',
+      experimentalDts: !preserveJsx,
+      treeshake: { preset: 'safest' },
+      replaceNodeEnv: true,
+      external: ['@tanstack/query-core', 'solid-js', '@solidjs/web'],
+      outExtension({ format }) {
+        return preserveJsx && format === 'esm' ? { js: '.jsx' } : {}
+      },
+      esbuildOptions(options) {
+        const mode = development ? 'development' : 'production'
+        options.define = {
+          ...options.define,
+          'process.env.NODE_ENV': JSON.stringify(mode),
+          'process.env.PROD': String(!development),
+          'process.env.DEV': String(development),
+          'process.env.SSR': 'false',
+          'import.meta.env.NODE_ENV': JSON.stringify(mode),
+          'import.meta.env.PROD': String(!development),
+          'import.meta.env.DEV': String(development),
+          'import.meta.env.SSR': 'false',
+        }
+        options.jsx = 'preserve'
+        options.chunkNames = '[name]/[hash]'
+        if (development) options.conditions = ['development']
+        else options.drop = ['console', 'debugger']
+      },
+      esbuildPlugins: preserveJsx ? [] : [solidV2Plugin()],
+    })),
+  ),
+)

@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'packages/solid-query/**'
+      - 'packages/query-devtools/**'
+      - 'packages/query-persist-client-core/**'
+      - 'packages/solid-query-devtools/**'
+      - 'packages/solid-query-persist-client/**'
       - 'scripts/ultramodern-solid-query-*'
       - '.github/workflows/ultramodern-solid-query-source.yml'
       - 'package.json'
@@ -11,13 +15,6 @@ on:
       - 'pnpm-lock.yaml'
   push:
     branches: [solid-query-v6-pre]
-    paths:
-      - 'packages/solid-query/**'
-      - 'scripts/ultramodern-solid-query-*'
-      - '.github/workflows/ultramodern-solid-query-source.yml'
-      - 'package.json'
-      - 'pnpm-workspace.yaml'
-      - 'pnpm-lock.yaml'
   workflow_dispatch:
     inputs:
       ci_run_id:

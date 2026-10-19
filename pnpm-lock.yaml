@@ -51,6 +51,9 @@ importers:
       '@eslint-react/eslint-plugin':
         specifier: ^2.0.1
         version: 2.13.0(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
+      '@microsoft/api-extractor':
+        specifier: 7.47.7
+        version: 7.47.7(@types/node@22.19.15)
       '@size-limit/preset-small-lib':
         specifier: ^12.0.0
         version: 12.0.1(size-limit@12.0.1(jiti@2.6.1))
@@ -1823,7 +1826,7 @@ importers:
         version: 5.55.1
       svelte-check:
         specifier: ^4.3.1
-        version: 4.4.6(picomatch@4.0.4)(svelte@5.55.1)(typescript@5.8.3)
+        version: 4.4.6(picomatch@4.0.7)(svelte@5.55.1)(typescript@5.8.3)
       typescript:
         specifier: 5.8.3
         version: 5.8.3
@@ -2801,11 +2804,10 @@ importers:
         version: 2.11.11(@testing-library/jest-dom@6.9.1)(solid-js@1.9.12)(vite@6.4.1(@types/node@22.19.15)(jiti@2.6.1)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3))
 
   packages/query-persist-client-core:
-    dependencies:
+    devDependencies:
       '@tanstack/query-core':
         specifier: workspace:*
         version: link:../query-core
-    devDependencies:
       '@tanstack/query-test-utils':
         specifier: workspace:*
         version: link:../query-test-utils
@@ -2960,18 +2962,9 @@ importers:
       '@babel/preset-typescript':
         specifier: ^7.18.6
         version: 7.28.5(@babel/core@7.29.0)
-      '@microsoft/api-extractor':
-        specifier: 7.47.7
-        version: 7.47.7(@types/node@22.19.15)
       '@solidjs/babel-plugin':
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15(@babel/core@7.29.0)
-      '@solidjs/compiler':
-        specifier: 2.0.0-rc.15
-        version: 2.0.0-rc.15
-      '@solidjs/signals':
-        specifier: 2.0.0-rc.15
-        version: 2.0.0-rc.15
       '@solidjs/testing-library':
         specifier: 1.0.0-beta.3
         version: 1.0.0-beta.3(@solidjs/web@2.0.0-rc.15(solid-js@2.0.0-rc.15))(solid-js@2.0.0-rc.15)
@@ -3013,7 +3006,10 @@ importers:
     dependencies:
       '@tanstack/query-devtools':
         specifier: workspace:*
-        version: link:../query-devtools
+        version: file:packages/query-devtools(@tanstack/query-core@5.102.0)
+    dependenciesMeta:
+      '@tanstack/query-devtools':
+        injected: true
     devDependencies:
       '@babel/core':
         specifier: ^7.28.0
@@ -3024,9 +3020,6 @@ importers:
       '@solidjs/babel-plugin':
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15(@babel/core@7.29.0)
-      '@solidjs/compiler':
-        specifier: 2.0.0-rc.15
-        version: 2.0.0-rc.15
       '@solidjs/signals':
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15
@@ -3039,21 +3032,27 @@ importers:
       '@solidjs/web':
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15(solid-js@2.0.0-rc.15)
+      '@tanstack/query-core':
+        specifier: 5.102.0
+        version: 5.102.0
       '@tanstack/solid-query':
         specifier: workspace:*
         version: link:../solid-query
+      '@types/babel__core':
+        specifier: ^7.20.5
+        version: 7.20.5
       '@vitest/coverage-istanbul':
         specifier: 4.1.2
         version: 4.1.2(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))
+      esbuild:
+        specifier: ^0.27.2
+        version: 0.27.4
       npm-run-all2:
         specifier: ^5.0.0
         version: 5.0.2
       solid-js:
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15
-      tsup-preset-solid:
-        specifier: ^2.2.0
-        version: 2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
@@ -3065,7 +3064,10 @@ importers:
     dependencies:
       '@tanstack/query-persist-client-core':
         specifier: workspace:*
-        version: link:../query-persist-client-core
+        version: file:packages/query-persist-client-core(@tanstack/query-core@5.102.0)
+    dependenciesMeta:
+      '@tanstack/query-persist-client-core':
+        injected: true
     devDependencies:
       '@babel/core':
         specifier: ^7.28.0
@@ -3076,12 +3078,6 @@ importers:
       '@solidjs/babel-plugin':
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15(@babel/core@7.29.0)
-      '@solidjs/compiler':
-        specifier: 2.0.0-rc.15
-        version: 2.0.0-rc.15
-      '@solidjs/signals':
-        specifier: 2.0.0-rc.15
-        version: 2.0.0-rc.15
       '@solidjs/testing-library':
         specifier: 1.0.0-beta.3
         version: 1.0.0-beta.3(@solidjs/web@2.0.0-rc.15(solid-js@2.0.0-rc.15))(solid-js@2.0.0-rc.15)
@@ -3091,24 +3087,30 @@ importers:
       '@solidjs/web':
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15(solid-js@2.0.0-rc.15)
+      '@tanstack/query-core':
+        specifier: 5.102.0
+        version: 5.102.0
       '@tanstack/query-test-utils':
         specifier: workspace:*
         version: link:../query-test-utils
       '@tanstack/solid-query':
         specifier: workspace:*
         version: link:../solid-query
+      '@types/babel__core':
+        specifier: ^7.20.5
+        version: 7.20.5
       '@vitest/coverage-istanbul':
         specifier: 4.1.2
         version: 4.1.2(vitest@4.1.2(@types/node@22.19.15)(jsdom@27.4.0)(msw@2.12.14(@types/node@22.19.15)(typescript@5.9.3))(vite@8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)))
+      esbuild:
+        specifier: ^0.27.2
+        version: 0.27.4
       npm-run-all2:
         specifier: ^5.0.0
         version: 5.0.2
       solid-js:
         specifier: 2.0.0-rc.15
         version: 2.0.0-rc.15
-      tsup-preset-solid:
-        specifier: ^2.2.0
-        version: 2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3))
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@22.19.15)(esbuild@0.27.4)(jiti@2.6.1)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3)
@@ -7681,6 +7683,16 @@ packages:
 
   '@tanstack/query-core@5.102.0':
     resolution: {integrity: sha512-tvBzr11Q7StuMCEsIJdqX8TAWt6WZIzfw/yrSAjObZDerwTTPeCxeLXN2R8ZSn4ZxFpQV819Xn8QmoO+vtnDvw==}
+
+  '@tanstack/query-devtools@file:packages/query-devtools':
+    resolution: {directory: packages/query-devtools, type: directory}
+    peerDependencies:
+      '@tanstack/query-core': '>=5.101.4 <6.0.0'
+
+  '@tanstack/query-persist-client-core@file:packages/query-persist-client-core':
+    resolution: {directory: packages/query-persist-client-core, type: directory}
+    peerDependencies:
+      '@tanstack/query-core': '>=5.101.4 <6.0.0'
 
   '@tanstack/react-location@3.7.4':
     resolution: {integrity: sha512-6rH2vNHGr0uyeUz5ZHvWMYjeYKGgIKFzvs5749QtnS9f+FU7t7fQE0hKZAzltBZk82LT7iYbcHBRyUg2lW13VA==}
@@ -21965,6 +21977,14 @@ snapshots:
 
   '@tanstack/query-core@5.102.0': {}
 
+  '@tanstack/query-devtools@file:packages/query-devtools(@tanstack/query-core@5.102.0)':
+    dependencies:
+      '@tanstack/query-core': 5.102.0
+
+  '@tanstack/query-persist-client-core@file:packages/query-persist-client-core(@tanstack/query-core@5.102.0)':
+    dependencies:
+      '@tanstack/query-core': 5.102.0
+
   '@tanstack/react-location@3.7.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@babel/runtime': 7.29.2
@@ -22285,10 +22305,10 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@typescript-eslint/eslint-plugin@8.58.1(@typescript-eslint/parser@8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)':
+  '@typescript-eslint/eslint-plugin@8.58.1(@typescript-eslint/parser@8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)':
     dependencies:
       '@eslint-community/regexpp': 4.12.2
-      '@typescript-eslint/parser': 8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/parser': 8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3)
       '@typescript-eslint/scope-manager': 8.58.1
       '@typescript-eslint/type-utils': 8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)
       '@typescript-eslint/utils': 8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)
@@ -23818,13 +23838,6 @@ snapshots:
       babel-plugin-jsx-dom-expressions: 0.40.6(@babel/core@7.29.0)
     optionalDependencies:
       solid-js: 2.0.0-rc.13
-
-  babel-preset-solid@1.9.12(@babel/core@7.29.0)(solid-js@2.0.0-rc.15):
-    dependencies:
-      '@babel/core': 7.29.0
-      babel-plugin-jsx-dom-expressions: 0.40.6(@babel/core@7.29.0)
-    optionalDependencies:
-      solid-js: 2.0.0-rc.15
 
   bail@2.0.2: {}
 
@@ -25373,16 +25386,6 @@ snapshots:
       babel-preset-solid: 1.9.12(@babel/core@7.29.0)(solid-js@1.9.12)
       esbuild: 0.27.4
       solid-js: 1.9.12
-    transitivePeerDependencies:
-      - supports-color
-
-  esbuild-plugin-solid@0.5.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15):
-    dependencies:
-      '@babel/core': 7.29.0
-      '@babel/preset-typescript': 7.28.5(@babel/core@7.29.0)
-      babel-preset-solid: 1.9.12(@babel/core@7.29.0)(solid-js@2.0.0-rc.15)
-      esbuild: 0.27.4
-      solid-js: 2.0.0-rc.15
     transitivePeerDependencies:
       - supports-color
 
@@ -30128,7 +30131,7 @@ snapshots:
 
   postcss@8.4.31:
     dependencies:
-      nanoid: 3.3.11
+      nanoid: 3.3.19
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -31916,18 +31919,6 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  svelte-check@4.4.6(picomatch@4.0.4)(svelte@5.55.1)(typescript@5.8.3):
-    dependencies:
-      '@jridgewell/trace-mapping': 0.3.31
-      chokidar: 5.0.0
-      fdir: 6.5.0(picomatch@4.0.4)
-      picocolors: 1.1.1
-      sade: 1.8.1
-      svelte: 5.55.1
-      typescript: 5.8.3
-    transitivePeerDependencies:
-      - picomatch
-
   svelte-check@4.4.6(picomatch@4.0.7)(svelte@5.55.1)(typescript@5.8.3):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
@@ -32324,15 +32315,6 @@ snapshots:
       - solid-js
       - supports-color
 
-  tsup-preset-solid@2.2.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)(tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)):
-    dependencies:
-      esbuild-plugin-solid: 0.5.0(esbuild@0.27.4)(solid-js@2.0.0-rc.15)
-      tsup: 8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3)
-    transitivePeerDependencies:
-      - esbuild
-      - solid-js
-      - supports-color
-
   tsup@8.5.1(@microsoft/api-extractor@7.47.7(@types/node@22.19.15))(jiti@2.6.1)(postcss@8.5.28)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.3):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.4)
@@ -32468,7 +32450,7 @@ snapshots:
 
   typescript-eslint@8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3):
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.58.1(@typescript-eslint/parser@8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)
+      '@typescript-eslint/eslint-plugin': 8.58.1(@typescript-eslint/parser@8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)
       '@typescript-eslint/parser': 8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)
       '@typescript-eslint/typescript-estree': 8.58.1(typescript@5.8.3)
       '@typescript-eslint/utils': 8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@5.8.3)
@@ -33023,11 +33005,11 @@ snapshots:
   vite@6.4.1(@types/node@22.19.15)(jiti@1.21.7)(lightningcss@1.33.0)(sass@1.90.0)(terser@5.46.1)(tsx@4.21.0)(yaml@2.8.3):
     dependencies:
       esbuild: 0.27.4
-      fdir: 6.5.0(picomatch@4.0.4)
-      picomatch: 4.0.4
-      postcss: 8.5.8
+      fdir: 6.5.0(picomatch@4.0.7)
+      picomatch: 4.0.7
+      postcss: 8.5.28
       rollup: 4.60.1
-      tinyglobby: 0.2.15
+      tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 22.19.15
       fsevents: 2.3.3
