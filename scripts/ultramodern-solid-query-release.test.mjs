@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { createHash } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 import {
@@ -246,3 +247,142 @@ test('rejects stale registry providers, cross-release URLs and private Core copi
     assert.throws(() => verifyReceipt(receipt, run, archives, sourceManifests))
   }
 })
+
+for (const scenario of ['inspection', 'asset', 'publish', 'stable']) {
+  test(`promotion checks live branch before mutations: ${scenario}`, () => {
+    const { receipt, archives } = fixture()
+    const actualManifests = new Map()
+    for (const entry of receipt.packages) {
+      const manifest = JSON.parse(
+        readFileSync(
+          new URL(
+            `../packages/${entry.package.slice('@tanstack/'.length)}/package.json`,
+            import.meta.url,
+          ),
+          'utf8',
+        ),
+      )
+      actualManifests.set(entry.package, manifest)
+      entry.packageVersion = manifest.version
+      const packed = structuredClone(manifest)
+      for (const name of packageNames) {
+        if (packed.dependencies?.[name])
+          packed.dependencies[name] = archiveUrl(name, source)
+        if (packed.peerDependencies?.[name]) {
+          packed.dependencies ??= {}
+          packed.dependencies[name] = archiveUrl(name, source)
+          delete packed.peerDependencies[name]
+        }
+      }
+      archives.get(entry.archive).manifest = packed
+    }
+    verifyReceipt(receipt, run, archives, actualManifests)
+    const script = new URL(
+      './ultramodern-solid-query-release.mjs',
+      import.meta.url,
+    )
+    const data = [...archives].map(([name, archive]) => ({
+      name,
+      bytes: archive.bytes.toString('base64'),
+      manifest: archive.manifest,
+    }))
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--eval',
+        `
+      import childProcess from 'node:child_process';
+      import { syncBuiltinESMExports } from 'node:module';
+      import { writeFileSync } from 'node:fs';
+      import { createHash } from 'node:crypto';
+      import path from 'node:path';
+      const archives = ${JSON.stringify(data)};
+      const scenario = ${JSON.stringify(scenario)};
+      const assets = [];
+      let inspected = 0;
+      let headChecks = 0;
+      let settingsChecks = 0;
+      let published = false;
+      childProcess.execFileSync = (command, args) => {
+        if (command === 'gh') {
+          const directory = args[args.indexOf('--dir') + 1];
+          writeFileSync(path.join(directory, 'acceptance.json'), ${JSON.stringify(JSON.stringify(receipt))});
+          for (const archive of archives) writeFileSync(path.join(directory, archive.name), Buffer.from(archive.bytes, 'base64'));
+          return;
+        }
+        if (command === 'tar') {
+          const archive = archives.find(archive => archive.name === path.basename(args[1]));
+          if (!archive) throw new Error('Unexpected archive inspection');
+          console.log('INSPECTED:' + ++inspected);
+          return JSON.stringify(archive.manifest);
+        }
+        throw new Error('Unexpected child command: ' + command);
+      };
+      syncBuiltinESMExports();
+      globalThis.fetch = async (url, options = {}) => {
+        const method = options.method ?? 'GET';
+        const route = String(url).split('/repos/BleedingDev/query/')[1];
+        let body;
+        let status = 200;
+        if (method !== 'GET') console.log('MUTATION:' + method + ':' + route);
+        if (String(url).startsWith('https://uploads.github.com/')) {
+          const asset = { name: new URL(url).searchParams.get('name'), digest: 'sha256:' + createHash('sha256').update(options.body).digest('hex') };
+          assets.push(asset);
+          body = asset;
+        } else if (method === 'POST' && route === 'releases') body = { id: 789 };
+        else if (method === 'PATCH' && route === 'releases/789') { published = true; body = {}; }
+        else if (route === 'immutable-releases') { settingsChecks++; body = { enabled: true }; }
+        else if (route === 'actions/runs/123') body = ${JSON.stringify(run)};
+        else if (route === 'branches/solid-query-v6-pre') {
+          console.log('HEAD_CHECK:' + ++headChecks);
+          const advanced = scenario === 'inspection' && inspected === 5 || scenario === 'asset' && assets.length > 0 || scenario === 'publish' && settingsChecks === 2;
+          body = { commit: { sha: advanced ? '${'b'.repeat(40)}' : '${source}' } };
+        } else if (route === 'actions/runs/123/artifacts?per_page=100') body = { total_count: 1, artifacts: [{ id: 456, name: 'solid-query-source-${source}', expired: false, workflow_run: { head_sha: '${source}' } }] };
+        else if (route === 'releases/789') body = { draft: false, immutable: true, assets, html_url: 'https://github.com/BleedingDev/query/releases/accepted' };
+        else if (route.startsWith('git/ref/tags/') && published) body = { object: { sha: '${source}' } };
+        else if (route.startsWith('releases/tags/') || route.startsWith('git/ref/tags/')) status = 404;
+        else throw new Error('Unexpected GitHub request: ' + method + ' ' + route);
+        return { ok: status === 200, status, json: async () => body };
+      };
+      process.argv[1] = ${JSON.stringify(fileURLToPath(script))};
+      process.argv[2] = '123';
+      await import(${JSON.stringify(script.href)});
+    `,
+      ],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          GITHUB_REPOSITORY: 'BleedingDev/query',
+          GITHUB_REF: 'refs/heads/solid-query-v6-pre',
+          GITHUB_SHA: source,
+          GH_TOKEN: 'guard-test-token',
+          QUERY_RELEASE_SETTINGS_TOKEN: 'guard-settings-token',
+        },
+      },
+    )
+    assert.match(result.stdout, /INSPECTED:5/)
+    const mutations = result.stdout.match(/^MUTATION:/gm) ?? []
+    if (scenario === 'stable') {
+      assert.equal(result.status, 0, result.stderr)
+      assert.equal(mutations.length, 8)
+      assert.match(result.stdout, /MUTATION:PATCH:releases\/789/)
+      assert.match(
+        result.stdout,
+        /https:\/\/github.com\/BleedingDev\/query\/releases\/accepted/,
+      )
+    } else {
+      assert.equal(result.status, 1)
+      assert.match(
+        result.stderr,
+        /Release requires current merged branch source/,
+      )
+      assert.equal(
+        mutations.length,
+        { inspection: 0, asset: 2, publish: 7 }[scenario],
+      )
+      assert.doesNotMatch(result.stdout, /MUTATION:PATCH/)
+    }
+  })
+}

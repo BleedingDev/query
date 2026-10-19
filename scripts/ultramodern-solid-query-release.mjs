@@ -169,12 +169,15 @@ async function main() {
   await verifyImmutabilitySetting()
   const run = await request(`actions/runs/${runId}`)
   verifyRun(run, source)
-  const currentBranch = await request(`branches/${branch}`)
-  assert.equal(
-    currentBranch.commit.sha,
-    source,
-    'Release requires current merged branch source',
-  )
+  async function verifyCurrentSource() {
+    const currentBranch = await request(`branches/${branch}`)
+    assert.equal(
+      currentBranch.commit.sha,
+      source,
+      'Release requires current merged branch source',
+    )
+  }
+  await verifyCurrentSource()
   const name = `solid-query-source-${source}`
   const artifacts = await request(
     `actions/runs/${runId}/artifacts?per_page=100`,
@@ -253,6 +256,7 @@ async function main() {
       )
       .join('\n')
     const evidence = `Source: https://github.com/${repository}/commit/${source}\nAccepted CI: https://github.com/${repository}/actions/runs/${runId}\nActions artifact: ${matching[0].id}\n\n${integrities}\n\nSolid 2.0.0-rc.15 with one caller-owned Query Core5.102.0. All five exact accepted archives, without rebuilding; wrapper dependencies point to these same immutable release assets.\n`
+    await verifyCurrentSource()
     const release = await request('releases', 'POST', {
       tag_name: tag,
       target_commitish: source,
@@ -264,6 +268,7 @@ async function main() {
     for (const filename of files) {
       const bytes = await readFile(path.join(work, filename))
       const url = `https://uploads.github.com/repos/${repository}/releases/${release.id}/assets?name=${encodeURIComponent(filename)}`
+      await verifyCurrentSource()
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -286,6 +291,7 @@ async function main() {
       )
     }
     await verifyImmutabilitySetting()
+    await verifyCurrentSource()
     await request(`releases/${release.id}`, 'PATCH', { draft: false })
     const published = await request(`releases/${release.id}`)
     assert.equal(published.draft, false)

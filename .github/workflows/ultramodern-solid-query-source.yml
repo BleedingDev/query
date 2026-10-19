@@ -25,7 +25,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: ultramodern-solid-query-source-${{ github.event_name == 'workflow_dispatch' && 'publication' || github.ref }}
+  group: ultramodern-solid-query-source-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'publication' }}
   cancel-in-progress: false
 
 jobs:
