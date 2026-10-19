@@ -1,6 +1,5 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["scripts/ultramodern-solid-query-check.mjs"],
   "ignore": ["scripts/*.{j,t}s", "**/root.*.config.*", "**/ts-fixture/file.ts"],
   "ignoreDependencies": [
     "@types/react",
@@ -10,6 +9,9 @@
   ],
   "ignoreWorkspaces": ["examples/**", "integrations/**"],
   "workspaces": {
+    ".": {
+      "entry": ["scripts/ultramodern-solid-query-check.mjs"]
+    },
     "packages/angular-query-experimental": {
       "entry": [
         "src/devtools/production/index.ts",
@@ -22,12 +24,6 @@
     },
     "packages/solid-query": {
       "ignore": ["src/__tests__/fixtures/**"]
-    },
-    "packages/solid-query-devtools": {
-      "ignoreDependencies": ["esbuild"]
-    },
-    "packages/solid-query-persist-client": {
-      "ignoreDependencies": ["esbuild"]
     },
     "packages/vue-query": {
       "ignoreDependencies": ["vue2", "vue2.7"]
