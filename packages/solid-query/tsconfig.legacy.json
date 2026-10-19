@@ -7,5 +7,5 @@
   },
   "include": ["src"],
   "exclude": ["src/__tests__"],
-  "references": [{ "path": "../query-core" }]
+  "references": []
 }

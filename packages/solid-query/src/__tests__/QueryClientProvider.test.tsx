@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render } from '@solidjs/testing-library'
-import { QueryCache } from '@tanstack/query-core'
+import {
+  QueryClient as CoreQueryClient,
+  QueryCache,
+} from '@tanstack/query-core'
 import { queryKey, sleep } from '@tanstack/query-test-utils'
 import { Loading } from 'solid-js'
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '..'
@@ -12,6 +15,28 @@ describe('QueryClientProvider', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('provides the same client shared with query-core', () => {
+    const client = new QueryClient()
+    const coreClient: CoreQueryClient = client
+    const key = queryKey()
+    coreClient.setQueryData(key, 'shared cache')
+
+    function Page() {
+      const providedClient = useQueryClient()
+      expect(providedClient).toBe(coreClient)
+      expect(providedClient).toBeInstanceOf(CoreQueryClient)
+      return <div>{providedClient.getQueryData<string>(key)}</div>
+    }
+
+    const rendered = render(() => (
+      <QueryClientProvider client={client}>
+        <Page />
+      </QueryClientProvider>
+    ))
+
+    expect(rendered.getByText('shared cache')).toBeInTheDocument()
   })
 
   it('sets a specific cache for all queries to use', async () => {

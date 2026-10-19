@@ -51,6 +51,7 @@ export { useInfiniteQuery } from './useInfiniteQuery'
 export { infiniteQueryOptions } from './infiniteQueryOptions'
 export type {
   DefinedInitialDataInfiniteOptions,
+  InfiniteQueryOptionsWithDataTag,
   UndefinedInitialDataInfiniteOptions,
 } from './infiniteQueryOptions'
 export { useMutation } from './useMutation'
