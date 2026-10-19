@@ -85,8 +85,11 @@ async function main() {
       },
     )
     assert(response.ok, `Immutability preflight failed with ${response.status}`)
-    assert.equal((await response.json()).enabled, true,
-      'Enable immutable releases before publishing accepted bytes')
+    assert.equal(
+      (await response.json()).enabled,
+      true,
+      'Enable immutable releases before publishing accepted bytes',
+    )
   }
   await verifyImmutabilitySetting()
   const run = await request(`actions/runs/${runId}`)

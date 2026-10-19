@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url'
 import { verifyRun, verifyReceipt } from './ultramodern-solid-query-release.mjs'
 const source = 'a'.repeat(40)
 test('missing settings credential stops before any release API request', () => {
-  const script = new URL('./ultramodern-solid-query-release.mjs', import.meta.url)
+  const script = new URL(
+    './ultramodern-solid-query-release.mjs',
+    import.meta.url,
+  )
   const result = spawnSync(
     process.execPath,
     [

@@ -15,7 +15,7 @@ describe('infiniteQueryOptions', () => {
       queryKey: ['packed', 'infinite'] as const,
       queryFn: async ({ pageParam }) => ({ page: pageParam }),
       initialPageParam: 0,
-      getNextPageParam: (last) => last.page < 1 ? last.page + 1 : undefined,
+      getNextPageParam: (last) => (last.page < 1 ? last.page + 1 : undefined),
     })
 
     expectTypeOf(useInfiniteQuery(() => options).data).toEqualTypeOf<
