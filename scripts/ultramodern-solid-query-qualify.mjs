@@ -13,6 +13,7 @@ import {
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { projectManifest } from './ultramodern-solid-query-release.mjs'
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const output = path.resolve(process.argv[2] ?? '')
@@ -85,10 +86,7 @@ try {
   )
   const repository = 'BleedingDev/query'
   assert.equal(process.env.GITHUB_REPOSITORY, repository)
-  const releaseTag = `ultramodern-solid-query-${source.slice(0, 12)}`
   const archiveName = (name) => `tanstack-${name}-${source.slice(0, 12)}.tgz`
-  const releaseUrl = (name) =>
-    `https://github.com/${repository}/releases/download/${releaseTag}/${archiveName(name)}`
   // Source installs use the committed strict workspace configuration so their
   // frozen lockfile is identical in normal PR CI and this qualification.
   const sourceConfig = [
@@ -204,6 +202,19 @@ try {
     ])
   }
   const packageNames = ['solid-query', ...providerPackages]
+  const sourceManifests = new Map(
+    await Promise.all(
+      packageNames.map(async (name) => {
+        const manifest = JSON.parse(
+          await readFile(
+            path.join(repo, 'packages', name, 'package.json'),
+            'utf8',
+          ),
+        )
+        return [manifest.name, manifest]
+      }),
+    ),
+  )
   const packed = new Map()
   for (const name of packageNames) {
     const rawDestination = path.join(work, 'raw-packs', name)
@@ -232,22 +243,11 @@ try {
     ])
     const packageRoot = path.join(stage, 'package')
     const manifestPath = path.join(packageRoot, 'package.json')
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
+    const manifest = projectManifest(
+      JSON.parse(await readFile(manifestPath, 'utf8')),
+      sourceManifests,
+    )
     assert.equal(manifest.name, `@tanstack/${name}`)
-    const sharedProvider = {
-      'solid-query-devtools': 'query-devtools',
-      'solid-query-persist-client': 'query-persist-client-core',
-    }[name]
-    if (sharedProvider) {
-      manifest.dependencies = {
-        ...manifest.dependencies,
-        '@tanstack/solid-query': releaseUrl('solid-query'),
-        [`@tanstack/${sharedProvider}`]: releaseUrl(sharedProvider),
-      }
-      // URL coordinates are dependencies, not semver peer ranges. Core and the
-      // native Solid runtime remain required caller-owned peers.
-      delete manifest.peerDependencies['@tanstack/solid-query']
-    }
     const callerPeers = name.startsWith('solid-query')
       ? ['@tanstack/query-core', 'solid-js', '@solidjs/web']
       : ['@tanstack/query-core']
@@ -330,15 +330,9 @@ try {
   )
   await writeFile(
     path.join(consumer, 'pnpm-workspace.yaml'),
-    // Before publication, map all same-release URLs to the exact accepted local
-    // bytes. Postpublication acceptance must install the URLs without overrides.
-    'packages: []\nminimumReleaseAge: 1440\nminimumReleaseAgeExclude: []\nstrictPeerDependencies: true\nautoInstallPeers: false\npackageImportMethod: clone-or-copy\nallowBuilds:\n  esbuild: true\noverrides:\n' +
-      [...packed]
-        .map(
-          ([name, archive]) =>
-            `  ${JSON.stringify(name)}: ${JSON.stringify(`file:${archive}`)}\n`,
-        )
-        .join(''),
+    // The same five caller-owned archives are direct dependencies before and
+    // after publication; no overrides may conceal a nested delivery edge.
+    'packages: []\nminimumReleaseAge: 1440\nminimumReleaseAgeExclude: []\nstrictPeerDependencies: true\nautoInstallPeers: false\nblockExoticSubdeps: true\npackageImportMethod: clone-or-copy\nallowBuilds:\n  esbuild: true\n',
   )
   await writeFile(
     path.join(consumer, 'tsconfig.json'),
@@ -579,17 +573,19 @@ console.log('Packed Query production/development native Provider, hooks and shar
   await writeFile(
     consumerHook,
     `module.exports = { hooks: { updateConfig(config) {
-    return { ...config, minimumReleaseAge: 1440, minimumReleaseAgeExclude: [], packageImportMethod: 'clone-or-copy', strictPeerDependencies: true, autoInstallPeers: false, allowBuilds: { esbuild: true } }
+    if (Object.keys(config.overrides ?? {}).length) throw new Error('Consumer overrides are forbidden')
+    return { ...config, blockExoticSubdeps: true, minimumReleaseAge: 1440, minimumReleaseAgeExclude: [], packageImportMethod: 'clone-or-copy', strictPeerDependencies: true, autoInstallPeers: false, allowBuilds: { esbuild: true } }
   } } }\n`,
   )
-  // This consumer's packages: [] workspace owns its tarball overrides. Keep it
-  // enabled and isolate its virtual store from any inherited source-build config.
+  // Keep the consumer workspace policies and isolate its virtual store from
+  // inherited source-build configuration.
   await run(
     pnpm,
     [
       `--config.pnpmfile=${consumerHook}`,
       '--config.strictPeerDependencies=true',
       '--config.autoInstallPeers=false',
+      '--config.blockExoticSubdeps=true',
       '--config.packageImportMethod=clone-or-copy',
       `--config.virtualStoreDir=${path.join(consumer, 'node_modules/.pnpm')}`,
       'install',
@@ -656,7 +652,7 @@ console.log('Packed Query production/development native Provider, hooks and shar
           'public Provider and SSR types',
           'shared ESM/CJS Core identity, query, infiniteQuery and dehydration',
           'production/development native Provider, hooks and cache',
-          'five delivery archives with prepublication local-byte URL mapping and strict caller-owned peers',
+          'five direct archives with required exact-version cohort peers, no overrides and blocked exotic subdependencies',
           'provider public DTS share caller QueryClient and persistence saves/restores its cache',
         ],
       },

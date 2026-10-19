@@ -10,6 +10,7 @@ import {
   packageNames,
   archiveName,
   archiveUrl,
+  projectManifest,
 } from './ultramodern-solid-query-release.mjs'
 const source = 'a'.repeat(40)
 test('missing settings credential stops before any release API request', () => {
@@ -83,26 +84,13 @@ function fixture() {
     packageNames.map((name) => {
       const sourceManifest = sourceManifests.get(name)
       const manifest = structuredClone(sourceManifest)
-      if (name === '@tanstack/solid-query-devtools') {
-        manifest.dependencies = {
-          '@tanstack/query-devtools': archiveUrl(
-            '@tanstack/query-devtools',
-            source,
-          ),
-          '@tanstack/solid-query': archiveUrl('@tanstack/solid-query', source),
-        }
-        delete manifest.peerDependencies['@tanstack/solid-query']
+      for (const provider of Object.keys(manifest.dependencies ?? {})) {
+        delete manifest.dependencies[provider]
+        manifest.peerDependencies[provider] =
+          sourceManifests.get(provider).version
       }
-      if (name === '@tanstack/solid-query-persist-client') {
-        manifest.dependencies = {
-          '@tanstack/query-persist-client-core': archiveUrl(
-            '@tanstack/query-persist-client-core',
-            source,
-          ),
-          '@tanstack/solid-query': archiveUrl('@tanstack/solid-query', source),
-        }
-        delete manifest.peerDependencies['@tanstack/solid-query']
-      }
+      if (manifest.peerDependencies['@tanstack/solid-query'])
+        manifest.peerDependencies['@tanstack/solid-query'] = '6.0.0-rc.5'
       return [
         archiveName(name, source),
         { bytes: Buffer.from(`accepted ${name} bytes`), manifest },
@@ -129,7 +117,7 @@ function fixture() {
   }
   return { receipt, archives }
 }
-test('accepts all five exact accepted archives and same-release wrapper graph', () => {
+test('accepts five direct archives with required exact-version cohort peers', () => {
   const { receipt, archives } = fixture()
   verifyRun(run, source)
   verifyReceipt(receipt, run, archives, sourceManifests)
@@ -196,7 +184,45 @@ test('rejects altered or absent bytes from any accepted provider', () => {
     }
   }
 })
-test('rejects stale registry providers, cross-release URLs and private Core copies', () => {
+test('projects dependency, optional and peer edges to exact required caller peers', () => {
+  const original = {
+    name: '@tanstack/solid-query-devtools',
+    dependencies: {
+      '@tanstack/query-devtools': 'workspace:*',
+      outside: '^1.0.0',
+    },
+    optionalDependencies: {
+      '@tanstack/query-persist-client-core': 'workspace:*',
+    },
+    peerDependencies: {
+      '@tanstack/solid-query': 'workspace:^',
+      'solid-js': '>=2.0.0-rc.13 <3',
+    },
+    peerDependenciesMeta: {
+      '@tanstack/solid-query': { optional: true },
+      outside: { optional: true },
+    },
+  }
+  const projected = projectManifest(original, sourceManifests)
+  assert.deepEqual(projected.dependencies, { outside: '^1.0.0' })
+  assert.deepEqual(projected.optionalDependencies, {})
+  assert.deepEqual(projected.peerDependencies, {
+    '@tanstack/solid-query': '6.0.0-rc.5',
+    '@tanstack/query-devtools': '5.101.4',
+    '@tanstack/query-persist-client-core': '5.101.4',
+    'solid-js': '>=2.0.0-rc.13 <3',
+  })
+  assert.deepEqual(projected.peerDependenciesMeta, {
+    outside: { optional: true },
+  })
+  assert.equal(original.dependencies['@tanstack/query-devtools'], 'workspace:*')
+  assert.equal(
+    original.peerDependenciesMeta['@tanstack/solid-query'].optional,
+    true,
+  )
+  assert.throws(() => projectManifest(original, new Map()))
+})
+test('rejects nested URLs, optional or inexact cohort peers, and private Core copies', () => {
   for (const mutate of [
     (manifest) => {
       manifest.dependencies['@tanstack/query-devtools'] = '5.101.4'
@@ -204,14 +230,35 @@ test('rejects stale registry providers, cross-release URLs and private Core copi
     (manifest) => {
       manifest.dependencies['@tanstack/query-devtools'] = archiveUrl(
         '@tanstack/query-devtools',
-        'b'.repeat(40),
+        source,
       )
     },
     (manifest) => {
-      manifest.dependencies['@tanstack/solid-query'] = '^6.0.0-rc.5'
+      manifest.optionalDependencies = {
+        '@tanstack/query-devtools': archiveUrl(
+          '@tanstack/query-devtools',
+          source,
+        ),
+      }
     },
     (manifest) => {
       manifest.peerDependencies['@tanstack/solid-query'] = '^6.0.0-rc.5'
+    },
+    (manifest) => {
+      manifest.peerDependencies['@tanstack/query-devtools'] = '5.101.3'
+    },
+    (manifest) => {
+      delete manifest.peerDependencies['@tanstack/query-devtools']
+    },
+    (manifest) => {
+      manifest.peerDependenciesMeta = {
+        '@tanstack/query-devtools': { optional: true },
+      }
+    },
+    (manifest) => {
+      manifest.peerDependenciesMeta = {
+        '@tanstack/solid-query': { optional: true },
+      }
     },
     (manifest) => {
       manifest.dependencies['@tanstack/query-core'] = '5.102.0'
@@ -225,11 +272,6 @@ test('rejects stale registry providers, cross-release URLs and private Core copi
     (manifest) => {
       manifest.peerDependenciesMeta = {
         '@tanstack/query-core': { optional: true },
-      }
-    },
-    (manifest) => {
-      manifest.optionalDependencies = {
-        '@tanstack/query-devtools': 'workspace:*',
       }
     },
     (manifest) => {
@@ -264,17 +306,12 @@ for (const scenario of ['inspection', 'asset', 'publish', 'stable']) {
       )
       actualManifests.set(entry.package, manifest)
       entry.packageVersion = manifest.version
-      const packed = structuredClone(manifest)
-      for (const name of packageNames) {
-        if (packed.dependencies?.[name])
-          packed.dependencies[name] = archiveUrl(name, source)
-        if (packed.peerDependencies?.[name]) {
-          packed.dependencies ??= {}
-          packed.dependencies[name] = archiveUrl(name, source)
-          delete packed.peerDependencies[name]
-        }
-      }
-      archives.get(entry.archive).manifest = packed
+    }
+    for (const entry of receipt.packages) {
+      archives.get(entry.archive).manifest = projectManifest(
+        actualManifests.get(entry.package),
+        actualManifests,
+      )
     }
     verifyReceipt(receipt, run, archives, actualManifests)
     const script = new URL(
