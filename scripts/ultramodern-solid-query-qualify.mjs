@@ -168,8 +168,11 @@ try {
     '@arethetypeswrong/cli/dist/index.js',
     '--pack',
   )
-  // Build the shared providers normally before their injected copies are used by
-  // the Solid wrappers. pnpm's build lifecycle synchronizes the injected peers.
+  // Build providers in dependency order, retaining pnpm's injection-sync lifecycle.
+  // Filtered run discovers the same selected workspace as install. Nonrecursive
+  // run instead rereads every workspace from YAML during dependency verification.
+  // Use Nx's root context: exec on each provider would also invoke this command
+  // for its dependency projects, duplicating builds (including private utilities).
   const providerPackages = [
     'query-devtools',
     'query-persist-client-core',
@@ -180,10 +183,11 @@ try {
     await run(process.execPath, [
       path.join(repo, 'node_modules/nx/bin/nx.js'),
       'exec',
-      `--projects=@tanstack/${name}`,
+      '--projects=root',
       '--',
       pnpm,
       ...sourceConfig,
+      `--filter=@tanstack/${name}`,
       'run',
       'build',
     ])
