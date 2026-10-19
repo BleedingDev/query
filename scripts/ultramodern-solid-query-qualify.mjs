@@ -492,6 +492,8 @@ console.log('Packed Query production/development native Provider, hooks and shar
     return { ...config, minimumReleaseAge: 1440, minimumReleaseAgeExclude: [], packageImportMethod: 'clone-or-copy', strictPeerDependencies: true, autoInstallPeers: false, allowBuilds: { esbuild: true } }
   } } }\n`,
   )
+  // This consumer's packages: [] workspace owns its tarball overrides. Keep it
+  // enabled and isolate its virtual store from any inherited source-build config.
   await run(
     pnpm,
     [
@@ -499,9 +501,9 @@ console.log('Packed Query production/development native Provider, hooks and shar
       '--config.strictPeerDependencies=true',
       '--config.autoInstallPeers=false',
       '--config.packageImportMethod=clone-or-copy',
+      `--config.virtualStoreDir=${path.join(consumer, 'node_modules/.pnpm')}`,
       'install',
       '--no-frozen-lockfile',
-      '--ignore-workspace',
     ],
     consumer,
   )
